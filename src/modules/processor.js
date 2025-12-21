@@ -96,9 +96,10 @@ const processBook = async (bookId, onProgress) => {
   const fileExt = path.extname(downloadedFile).toLowerCase();
 
   if (!using_drm) {
-    const destPath = path.join(bookFolder, path.basename(downloadedFile));
+    const finalFilename = `${safeName}_decrypted${fileExt}`;
+    const destPath = path.join(bookFolder, finalFilename);
     fs.renameSync(downloadedFile, destPath);
-    return { path: destPath, filename: path.basename(downloadedFile) };
+    return { path: destPath, filename: finalFilename };
   } else {
     onProgress?.({ status: "Extracting DRM credentials..." });
     const dKey = decryptKey(user_id, b_id, epustaka_id, borrow_key);
