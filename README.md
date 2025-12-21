@@ -1,114 +1,56 @@
-# 📚 iPusnas Downloader CLI
+# iPusnas Downloader
 
-A Node.js command-line tool to download and decrypt DRM-protected books from [ipusnas.perpusnas.go.id](https://ipusnas2.perpusnas.go.id/).
+A modern, high-performance toolkit to download and decrypt DRM-protected books from [ipusnas.perpusnas.go.id](https://ipusnas2.perpusnas.go.id/). Built for speed with **Bun** and **Hono**.
 
-> ⚠️ **Important:** You must have **borrowed the book** in the iPusnas app **before** using this tool. This tool does not bypass borrowing restrictions.
+## ✨ Key Features
 
----
+- **Smart Downloader**: Automatically decrypts and packages books into high-quality PDF or EPUB formats.
+- **Concurrent Processing**: Supports multiple parallel downloads without server blocking, thanks to asynchronous `Bun.spawn` tasking.
+- **Pro Dashboard**: A clean, "Catppuccin Mocha" aesthetic UI with real-time search, library statistics, and instant filtering.
+- **Library Cleanup**: Reclaim storage space with a one-click 🗑 **Delete** feature for any local book.
+- **Local Serving**: Open and read your books directly in the browser or your preferred local reader.
+- **Zero-Friction Sync**: One-click synchronization between your IPUSNAS cloud library and your local offline collection.
 
-## ⚙️ Requirements
+## 🚀 Quick Start
 
-- Node.js (v14 or higher)
-- QPDF binary included in `bin/qpdf` or available in your system `PATH`
+### Prerequisites
 
----
+1.  **Bun**: Ensure you have [Bun](https://bun.sh/) installed.
+2.  **QPDF**: The app uses `qpdf.exe` located in `bin/` for decryption.
 
-## 🚀 Installation
-
-1. **Clone the repository:**
-
-```bash
-git clone https://github.com/yourname/ipusnas-downloader.git
-cd ipusnas-downloader
-```
-
-2. **Install dependencies:**
+### Running the App
 
 ```bash
-npm install
+# Install dependencies
+bun install
+
+# Start development server
+bun run dev
 ```
 
-3. **(Optional)** Make script executable:
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```bash
-chmod +x index.js
-```
+## 🛠 Tech Stack
 
----
+- **Runtime**: [Bun](https://bun.sh/)
+- **Backend Framework**: [Hono](https://hono.dev/) (Native Bun mode)
+- **Frontend**: Vanilla JS + CSS (Catppuccin Mocha Palette)
+- **Tooling**: QPDF (Decryption), AdmZip (EPUB packaging)
 
-## 🗕️ Usage
+## 📁 Project Structure
 
-### ✅ First-Time Login
-
-```bash
-node index.js --login <email> <password>
-```
-
-> 🔐 Saves the authentication token to `token.json` for future use.
-
----
-
-### 📘 Download a Book
-
-You can download the book direct from your books shelf:
-
-```bash
-node index.js --list
-```
+- `src/server.js`: Modern Hono server using native Bun exports.
+- `src/index.html`: Optimized atomic-rendering frontend.
+- `src/modules/`: Functional core (Auth, Crypto, Downloader, Processor).
+- `bin/`: External binaries for decryption.
+- `books/`: Your decrypted offline library.
 
 ---
 
-## ℹ️ Help
+## 📄 Credits
 
-```bash
-node index.js --help
-```
-
-Displays usage instructions and available commands.
+Originally inspired by the iPusnas CLI tool. Enhanced for the modern web for educational purposes and easier access to materials you've already borrowed.
 
 ---
 
-## 📂 Output
-
-- Temporary and intermediate files are stored in the `temp/` directory.
-- Final decrypted PDF is saved as:
-  **`books/<Safe_Title>/<Safe_Title>_decrypted.pdf`**
-
----
-
-## ✨ Features
-
-- 🔐 Authenticated API access with token management
-- 🗖️ Handles `.mdrm` encrypted book packages
-- 🔓 Automatically decrypts PDFs using QPDF
-- 📉 Visual CLI progress bars during download
-- 🧹 Automatically removes encrypted and temporary files
-
----
-
-## ⚠️ Troubleshooting
-
-- **Token missing or expired:**
-
-  Re-login to generate a new token:
-
-  ```bash
-  node index.js --login <email> <password>
-  ```
-
-- **QPDF issues:**
-
-  - Make sure the `bin/qpdf` binary exists and is executable.
-  - Alternatively, install QPDF system-wide and ensure it’s in your `PATH`.
-
----
-
-## 📄 License
-
-MIT License
-
----
-
-## 👥 Credits
-
-Made for educational purposes and to facilitate easier access to books **you’ve already borrowed** from the official iPusnas platform.
+_Disclaimer: This tool is for personal use only. Please respect copyright laws and the terms of service of IPUSNAS._

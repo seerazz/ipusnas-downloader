@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iPusnas Downloader</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* Catppuccin Mocha Palette */
+        --rosewater: #f5e0dc;
+        --flamingo: #f2cdcd;
+        --pink: #f5c2e7;
+        --mauve: #cba6f7;
+        --red: #f38ba8;
+        --maroon: #eba0ac;
+        --peach: #fab387;
+        --yellow: #f9e2af;
+        --green: #a6e3a1;
+        --teal: #94e2d5;
+        --sky: #89dceb;
+        --sapphire: #74c7ec;
+        --blue: #89b4fa;
+        --lavender: #b4befe;
+        --text: #cdd6f4;
+        --subtext1: #bac2de;
+        --subtext0: #a6adc8;
+        --overlay2: #9399b2;
+        --overlay1: #7f849c;
+        --overlay0: #6c7086;
+        --surface2: #585b70;
+        --surface1: #45475a;
+        --surface0: #313244;
+        --base: #1e1e2e;
+        --mantle: #181825;
+        --crust: #11111b;
+
+        --primary: var(--green);
+        --accent: var(--blue);
+        --bg: var(--base);
+        --sidebar: var(--mantle);
+        --card: var(--surface0);
+        --border: var(--surface1);
+        --radius: 16px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Plus Jakarta Sans", sans-serif;
+      }
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .app-layout {
+        display: flex;
+        height: 100vh;
+      }
+
+      /* Sidebar */
+      aside {
+        width: 260px;
+        background-color: var(--sidebar);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 2rem 1.25rem;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 3rem;
+        padding-left: 0.5rem;
+      }
+      .logo-box {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, var(--green), var(--blue));
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--base);
+        font-weight: 800;
+        font-size: 1.1rem;
+      }
+      .logo h1 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .nav-list {
+        list-style: none;
+        flex: 1;
+      }
+      .nav-item {
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--subtext0);
+        transition: var(--transition);
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+      .nav-item:hover {
+        background: var(--surface0);
+        color: var(--text);
+      }
+      .nav-item.active {
+        background: var(--surface1);
+        color: var(--primary);
+      }
+
+      /* Main Content */
+      main {
+        flex: 1;
+        padding: 2.5rem 3.5rem;
+        overflow-y: auto;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+      }
+      .header h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .search-box {
+        background: var(--mantle);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        width: 350px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .search-box input {
+        background: transparent;
+        border: none;
+        color: var(--text);
+        outline: none;
+        width: 100%;
+        font-size: 0.9rem;
+      }
+
+      /* Sections */
+      .section {
+        display: none;
+        animation: slideUp 0.4s ease-out;
+      }
+      .section.active {
+        display: block;
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Grid & Cards */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        position: relative;
+      }
+      .card:hover {
+        transform: translateY(-4px);
+        border-color: var(--overlay0);
+        box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
+      }
+
+      .book-meta h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        line-height: 1.3;
+      }
+      .book-meta p {
+        font-size: 0.85rem;
+        color: var(--subtext0);
+      }
+
+      .status-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--green);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+      }
+      .btn {
+        padding: 0.65rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex: 1;
+      }
+      .btn-auth {
+        width: 100%;
+        padding: 0.8rem;
+        margin-top: 1rem;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: var(--base);
+      }
+      .btn-primary:hover {
+        background: var(--text);
+      }
+      .btn-outline {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--text);
+      }
+      .btn-outline:hover {
+        background: var(--surface1);
+        border-color: var(--overlay0);
+      }
+
+      /* Progress */
+      .progress-box {
+        display: none;
+        background: var(--mantle);
+        padding: 12px;
+        border-radius: 12px;
+        margin-top: 4px;
+      }
+      .progress-bar {
+        height: 6px;
+        background: var(--surface1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .progress-inner {
+        height: 100%;
+        background: linear-gradient(to right, var(--green), var(--blue));
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+      .progress-text {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--subtext1);
+      }
+
+      /* Auth Overlay */
+      .auth-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .auth-box {
+        width: 100%;
+        max-width: 400px;
+        padding: 3rem;
+        background: var(--mantle);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+      }
+      .auth-description {
+        color: var(--subtext0);
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+      }
+      .error-text {
+        color: var(--red);
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+      }
+      .auth-box input {
+        width: 100%;
+        background: var(--surface0);
+        border: 1px solid var(--border);
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        color: var(--text);
+        outline: none;
+        margin-bottom: 12px;
+        transition: var(--transition);
+      }
+      .auth-box input:focus {
+        border-color: var(--primary);
+      }
+
+      /* Stats Box */
+      .stats-box {
+        margin-top: auto;
+        padding: 1.25rem;
+        background: var(--mantle);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+      }
+      .stats-title {
+        font-size: 0.75rem;
+        color: var(--subtext0);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+      .stat-row:last-child {
+        margin-bottom: 0;
+      }
+      .stat-label {
+        font-size: 0.85rem;
+        color: var(--subtext1);
+      }
+      .stat-value {
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      /* Specialized Buttons */
+      .btn-sync {
+        flex: 0;
+        padding: 0.6rem 1rem;
+        margin-left: 10px;
+      }
+      .btn-logout {
+        margin-top: 1rem;
+        border: none;
+        background: transparent;
+        width: 100%;
+        color: var(--red) !important;
+      }
+      .btn-delete {
+        color: var(--red) !important;
+        border-color: var(--red) !important;
+        opacity: 0.7;
+      }
+      .btn-delete:hover {
+        opacity: 1;
+        background: rgba(243, 139, 168, 0.1) !important;
+      }
+      .empty-state {
+        grid-column: 1/-1;
+        text-align: center;
+        padding: 4rem;
+        color: var(--subtext0);
+      }
+      .card-actions-wrapper {
+        width: 100%;
+      }
+      .btn-icon {
+        flex: 0;
+        width: 42px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Auth Screen -->
+    <div id="auth-section" class="auth-overlay">
+      <div class="auth-box">
+        <div class="logo">
+          <div class="logo-box">i</div>
+          <h1>iPusnas <span style="font-weight: 300; opacity: 0.8">Downloader</span></h1>
+        </div>
+        <p class="auth-description">Sign in to sync your library.</p>
+        <input type="email" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Password" />
+        <button id="login-btn" class="btn btn-primary btn-auth">Enter Library</button>
+        <p id="error-msg" class="error-text"></p>
+      </div>
+    </div>
+
+    <!-- App Layout -->
+    <div id="main-app" class="app-layout hidden">
+      <aside>
+        <div class="logo">
+          <div class="logo-box">i</div>
+          <h1>iPusnas <span style="font-weight: 300">Downloader</span></h1>
+        </div>
+        <nav class="nav-list">
+          <li class="nav-item active" data-target="shelf-section"><span>Shelf Library</span></li>
+          <li class="nav-item" data-target="local-section"><span>Offline Books</span></li>
+        </nav>
+
+        <div class="stats-box">
+          <p class="stats-title">Library Status</p>
+          <div class="stat-row">
+            <span class="stat-label">Synced Items</span>
+            <span id="stat-shelf" class="stat-value" style="color: var(--primary)">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Available Offline</span>
+            <span id="stat-local" class="stat-value" style="color: var(--green)">0</span>
+          </div>
+        </div>
+
+        <button onclick="logout()" class="nav-item btn-logout">
+          <span>Logout Session</span>
+        </button>
+      </aside>
+
+      <main>
+        <div class="header">
+          <h2 id="section-title">Shelf Library</h2>
+          <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search books..." />
+          </div>
+          <button onclick="loadAllData()" class="btn btn-outline btn-sync">Sync Library</button>
+        </div>
+
+        <section id="shelf-section" class="section active">
+          <div class="grid" id="shelf-grid"></div>
+        </section>
+
+        <section id="local-section" class="section">
+          <div class="grid" id="local-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const API = {
+        login: "/api/login",
+        books: "/api/books",
+        library: "/api/library",
+        download: "/api/download/",
+        openFolder: "/api/open-folder/",
+        delete: "/api/delete/",
+        files: "/api/files/",
+        logout: "/api/logout",
+      };
+
+      // Global Data State
+      let shelfState = [];
+      let localState = [];
+      let currentSection = "shelf-section";
+      const activeDownloads = new Map();
+
+      // UI State
+      const navItems = document.querySelectorAll(".nav-item");
+      const sections = document.querySelectorAll(".section");
+      const sectionTitle = document.getElementById("section-title");
+
+      navItems.forEach((item) => {
+        item.addEventListener("click", () => {
+          const target = item.getAttribute("data-target");
+          if (!target || item.classList.contains("active")) return;
+          currentSection = target;
+
+          navItems.forEach((i) => i.classList.remove("active"));
+          item.classList.add("active");
+          sections.forEach((s) => s.classList.remove("active"));
+          document.getElementById(target).classList.add("active");
+          sectionTitle.textContent = item.querySelector("span").textContent;
+
+          document.getElementById("search-input").value = "";
+          if (target === "local-section") loadLocalLibrary();
+          else loadShelf();
+        });
+      });
+
+      // Search Logic
+      document.getElementById("search-input").addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if (currentSection === "shelf-section") {
+          const filtered = shelfState.filter(
+            (b) => b.book_title.toLowerCase().includes(query) || b.book_author.toLowerCase().includes(query)
+          );
+          renderShelf(filtered, true); // ignoreComparison = true for search
+        } else {
+          const filtered = localState.filter((b) => b.title.toLowerCase().includes(query));
+          renderLocalLibrary(filtered);
+        }
+      });
+
+      // Auth
+      document.getElementById("login-btn").addEventListener("click", async () => {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const error = document.getElementById("error-msg");
+        error.textContent = "Authenticating...";
+
+        try {
+          const res = await fetch(API.login, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await res.json();
+          if (data.success) enterApp();
+          else error.textContent = data.message;
+        } catch (e) {
+          error.textContent = "Connection error";
+        }
+      });
+
+      function enterApp() {
+        document.getElementById("auth-section").classList.add("hidden");
+        document.getElementById("main-app").classList.remove("hidden");
+        loadAllData();
+      }
+
+      async function loadAllData() {
+        const btn = document.querySelector(".btn-sync");
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Syncing...";
+        console.log("[UI] Fetching all library data...");
+        try {
+          await Promise.all([loadShelf(), loadLocalLibrary()]);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+
+      let isFetchingShelf = false;
+      // Feature: Load Shelf
+      async function loadShelf() {
+        if (isFetchingShelf) {
+          console.log("[UI] Already fetching shelf, skipping duplicate call.");
+          return;
+        }
+        isFetchingShelf = true;
+        console.log("[UI] Syncing shelf...");
+
+        const grid = document.getElementById("shelf-grid");
+        if (!grid.innerHTML.trim()) grid.innerHTML = '<p style="color: var(--subtext0)">Syncing...</p>';
+
+        try {
+          const res = await fetch(API.books);
+          const data = await res.json();
+          if (data.success) {
+            shelfState = data.books;
+            updateStats();
+            renderShelf(data.books);
+            return true;
+          }
+          return false;
+        } catch (e) {
+          console.error("[UI] Fetch error:", e);
+          return false;
+        } finally {
+          isFetchingShelf = false;
+        }
+      }
+
+      function renderShelf(books, ignoreComparison = false) {
+        const grid = document.getElementById("shelf-grid");
+
+        // Atomic Update: Only replace if books list changed or cards are missing
+        const bookIds = books
+          .map((b) => b.book_id)
+          .sort()
+          .join(",");
+        if (!ignoreComparison && grid.dataset.bookIds === bookIds) {
+          console.log("[UI] Shelf list unchanged, updating state only.");
+          // Update Downloaded status on existing cards without destroying them
+          books.forEach((book) => {
+            const card = document.getElementById(`card-${book.book_id}`);
+            if (!card) return;
+            const isDownloading = activeDownloads.has(book.book_id);
+            if (isDownloading) return; // Don't touch active animations
+
+            const actions = card.querySelector(".actions");
+            if (book.isLocal) {
+              actions.innerHTML = `
+                <div class="card-actions-wrapper">
+                  <div class="status-badge"><span>●</span> Cloud Synced</div>
+                  <div class="actions">
+                    <button class="btn btn-primary" onclick="window.open('${API.files}${book.safeName}/${book.localFilename}', '_blank')">Open ${book.localFormat}</button>
+                    <button class="btn btn-outline btn-icon" onclick="openFolder('${book.safeName}')" title="Open Folder">📁</button>
+                    <button class="btn btn-outline btn-icon btn-delete" onclick="removeBook('${book.safeName}')" title="Delete Local Copy">🗑</button>
+                  </div>
+                </div>`;
+              actions.classList.remove("hidden");
+              const prog = document.getElementById(`progress-${book.book_id}`);
+              if (prog) prog.style.display = "none";
+            } else {
+              // Revert to download button if deleted
+              actions.innerHTML = `<button class="btn btn-primary" onclick="initDownload('${book.book_id}')">Download</button>`;
+              actions.classList.remove("hidden");
+              const prog = document.getElementById(`progress-${book.book_id}`);
+              if (prog) prog.style.display = "none";
+            }
+          });
+          return;
+        }
+
+        grid.dataset.bookIds = bookIds;
+        grid.innerHTML = books
+          .map((book) => {
+            const isDownloading = activeDownloads.has(book.book_id);
+            const state = isDownloading ? activeDownloads.get(book.book_id) : { percentage: 0, status: "Pending" };
+            return `
+          <div class="card" id="card-${book.book_id}">
+            <div class="book-meta">
+              <h3>${book.book_title}</h3>
+              <p>${book.book_author}</p>
+            </div>
+
+            <div class="progress-box" id="progress-${book.book_id}" style="${isDownloading ? "display: block" : ""}">
+              <div class="progress-bar"><div class="progress-inner" id="fill-${book.book_id}" style="width: ${
+              state.percentage
+            }%"></div></div>
+              <div class="progress-text">
+                <span id="status-${book.book_id}">${state.status}</span>
+                <span id="percent-${book.book_id}">${state.percentage}%</span>
+              </div>
+            </div>
+
+            <div class="actions ${isDownloading ? "hidden" : ""}" id="actions-${book.book_id}">
+              ${
+                book.isLocal
+                  ? `
+                <div class="card-actions-wrapper">
+                  <div class="status-badge"><span>●</span> Cloud Synced</div>
+                  <div class="actions">
+                    <button class="btn btn-primary" onclick="window.open('${API.files}${book.safeName}/${book.localFilename}', '_blank')">Open ${book.localFormat}</button>
+                    <button class="btn btn-outline btn-icon" onclick="openFolder('${book.safeName}')" title="Open Folder">📁</button>
+                    <button class="btn btn-outline btn-icon btn-delete" onclick="removeBook('${book.safeName}')" title="Delete Local Copy">🗑</button>
+                  </div>
+                </div>
+              `
+                  : `
+                <button class="btn btn-primary" onclick="initDownload('${book.book_id}')">Download</button>
+              `
+              }
+            </div>
+          </div>
+        `;
+          })
+          .join("");
+      }
+
+      let isFetchingLibrary = false;
+      async function loadLocalLibrary() {
+        if (isFetchingLibrary) return;
+        isFetchingLibrary = true;
+        const grid = document.getElementById("local-grid");
+        if (!grid.innerHTML.trim()) grid.innerHTML = '<p style="color: var(--subtext0)">Loading...</p>';
+
+        try {
+          const res = await fetch(API.library);
+          const data = await res.json();
+          if (data.success) {
+            localState = data.books;
+            updateStats();
+            renderLocalLibrary(data.books);
+          }
+        } finally {
+          isFetchingLibrary = false;
+        }
+      }
+
+      function renderLocalLibrary(books) {
+        const grid = document.getElementById("local-grid");
+        if (books.length === 0) {
+          grid.innerHTML = '<p class="empty-state">Empty Library</p>';
+          return;
+        }
+        grid.innerHTML = books
+          .map(
+            (book) => `
+          <div class="card">
+            <div class="book-meta">
+              <h3>${book.title}</h3>
+              <p>Format: ${book.format}</p>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary" onclick="window.open('${API.files}${book.id}/${book.filename}', '_blank')">View</button>
+              <button class="btn btn-outline btn-icon" onclick="openFolder('${book.id}')" title="Open Folder">📁</button>
+              <button class="btn btn-outline btn-icon btn-delete" onclick="removeBook('${book.id}')" title="Delete Local Copy">🗑</button>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      function initDownload(bookId) {
+        if (activeDownloads.has(bookId)) return;
+        activeDownloads.set(bookId, { percentage: 0, status: "Starting..." });
+
+        const actions = document.getElementById(`actions-${bookId}`);
+        const progress = document.getElementById(`progress-${bookId}`);
+        if (actions) actions.classList.add("hidden");
+        if (progress) progress.style.display = "block";
+
+        fetch(API.download + bookId, { method: "POST" }).then((response) => {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          function read() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                activeDownloads.delete(bookId);
+                return;
+              }
+              const chunk = decoder.decode(value);
+              chunk.split("\n").forEach((line) => {
+                if (line.startsWith("data: ")) {
+                  const data = JSON.parse(line.substring(6));
+                  const fill = document.getElementById(`fill-${bookId}`);
+                  const status = document.getElementById(`status-${bookId}`);
+                  const percent = document.getElementById(`percent-${bookId}`);
+                  const pBox = document.getElementById(`progress-${bookId}`);
+                  const aBox = document.getElementById(`actions-${bookId}`);
+
+                  if (pBox) pBox.style.display = "block";
+                  if (aBox) aBox.classList.add("hidden");
+
+                  if (data.type === "progress") {
+                    activeDownloads.set(bookId, { percentage: data.percentage, status: data.status });
+                    if (fill) fill.style.width = data.percentage + "%";
+                    if (status) status.textContent = data.status;
+                    if (percent) percent.textContent = data.percentage + "%";
+                  } else if (data.type === "complete") {
+                    activeDownloads.delete(bookId);
+                    if (status) status.textContent = "Synced!";
+                    if (fill) fill.style.background = "var(--green)";
+                    setTimeout(() => {
+                      loadShelf();
+                      loadLocalLibrary();
+                    }, 1500);
+                  }
+                }
+              });
+              read();
+            });
+          }
+          read();
+        });
+      }
+
+      async function openFolder(safeName) {
+        await fetch(API.openFolder + safeName, { method: "POST" });
+      }
+
+      async function removeBook(safeName) {
+        if (!confirm("Remove this book from your local offline library?")) return;
+        try {
+          const res = await fetch(API.delete + safeName, { method: "POST" });
+          const data = await res.json();
+          if (data.success) {
+            loadAllData();
+          } else {
+            alert(data.message || "Failed to delete.");
+          }
+        } catch (e) {
+          alert("Error connecting to server.");
+        }
+      }
+
+      async function logout() {
+        if (!confirm("Are you sure you want to end this session?")) return;
+        await fetch(API.logout, { method: "POST" });
+        window.location.reload();
+      }
+
+      function updateStats() {
+        document.getElementById("stat-shelf").textContent = shelfState.length;
+        document.getElementById("stat-local").textContent = localState.length;
+      }
+
+      // Note: Initial load is handled in window.onload or by successful login.
+      window.onload = async () => {
+        console.log("[UI] App initializing...");
+        const isLoggedIn = await loadShelf(); // Still check login via shelf
+        if (isLoggedIn) {
+          document.getElementById("auth-section").classList.add("hidden");
+          document.getElementById("main-app").classList.remove("hidden");
+          loadAllData(); // Then fetch everything
+        }
+      };
+    </script>
+  </body>
+</html>
