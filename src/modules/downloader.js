@@ -9,6 +9,7 @@ const BOOKS_DIR = path.join(__dirname, "..", "..", "books");
 
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
 if (!fs.existsSync(BOOKS_DIR)) fs.mkdirSync(BOOKS_DIR, { recursive: true });
+const qpdfPath = path.join(__dirname, "..", "..", "bin", "qpdf.exe");
 
 const downloadBook = async (url, name, onProgress) => {
   const safeName = name.trim().replace(/[^a-z0-9_\-\.]/gi, "_");
