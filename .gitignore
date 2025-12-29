@@ -4,3 +4,8 @@ temp/*
 token.json
 *.pdf
 books/*
+src/discover-*.js
+src/brute-search.js
+src/inspect-token.js
+src/test-borrow.js
+src/verify-token.js

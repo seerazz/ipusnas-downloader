@@ -8,13 +8,13 @@ const { API_URLS, BOOKS_DIR, TOKEN_PATH } = require("../config");
 // Concurrency Control
 const MAX_CONCURRENT_DOWNLOADS = 2;
 let activeDownloads = 0;
-const downloadQueue = [];
+const downloadQueue = []; // Array of { bookId, task }
 
 const processQueue = () => {
   if (activeDownloads < MAX_CONCURRENT_DOWNLOADS && downloadQueue.length > 0) {
-    const nextTask = downloadQueue.shift();
+    const next = downloadQueue.shift();
     activeDownloads++;
-    nextTask();
+    next.task();
   }
 };
 
@@ -55,13 +55,21 @@ const cancelJob = (bookId) => {
     activeJobs.delete(bookId);
     return true;
   }
+
+  const qIdx = downloadQueue.findIndex((q) => q.bookId === bookId);
+  if (qIdx !== -1) {
+    const q = downloadQueue.splice(qIdx, 1)[0];
+    q.reject(new Error("Download cancelled while in queue"));
+    return true;
+  }
+
   return false;
 };
 
 // Main processing function wrapped with queue logic
 const processBook = async (bookId, onProgress) => {
-  if (activeJobs.has(bookId)) {
-    throw new Error("Download already in progress (Background)");
+  if (activeJobs.has(bookId) || downloadQueue.some((q) => q.bookId === bookId)) {
+    throw new Error("Download already in progress or queued");
   }
 
   return new Promise((resolve, reject) => {
@@ -104,7 +112,7 @@ const processBook = async (bookId, onProgress) => {
       task();
     } else {
       onProgress?.({ percentage: 0, status: "Queued (Waiting for available slot...)" });
-      downloadQueue.push(task);
+      downloadQueue.push({ bookId, task, resolve, reject });
     }
   });
 };
@@ -128,6 +136,7 @@ const executeProcessBook = async (bookId, onProgress, signal) => {
     data: {
       url_file,
       borrow_key,
+      cover_url,
       epustaka: { id: epustaka_id },
     },
   } = await getBorrowInfo(access_token, b_id);
@@ -137,6 +146,18 @@ const executeProcessBook = async (bookId, onProgress, signal) => {
 
   try {
     await fs.mkdir(bookFolder, { recursive: true });
+    // Download cover if not exists
+    const coverPath = path.join(bookFolder, "cover.jpg");
+    try {
+      await fs.access(coverPath);
+    } catch (e) {
+      if (cover_url) {
+        onProgress?.({ percentage: 0, status: "Downloading cover..." });
+        const coverClient = createRequest();
+        const coverRes = await coverClient.get(cover_url, { responseType: "arraybuffer" });
+        await fs.writeFile(coverPath, Buffer.from(coverRes.data));
+      }
+    }
   } catch (e) {}
 
   const existingFiles = await fs.readdir(bookFolder);
@@ -165,8 +186,6 @@ const executeProcessBook = async (bookId, onProgress, signal) => {
     let targetFile = downloadedFile;
     if (fileExt === ".mdrm") {
       onProgress?.({ percentage: 99, status: "Unlocking MDRM container..." });
-      // extractZip handles intermediate files. We might want to make it async later, but for now it's synchronous in downloader.js
-      // Since it's CPU bound, keeping it sync is okayish, or we can wrap it. checking downloader.js later.
       targetFile = await extractZip(downloadedFile, passwordZip, b_id);
     }
 

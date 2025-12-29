@@ -33,6 +33,8 @@ const downloadBook = async (url, name, onProgress, signal) => {
     const response = await client.get(url, { signal });
     const totalLength = parseInt(response.headers["content-length"] || "0", 10);
     let downloaded = 0;
+    let startTime = Date.now();
+    let lastUpdate = Date.now();
 
     onProgress?.({ percentage: 0, total: totalLength, current: 0, status: "Starting download..." });
 
@@ -41,9 +43,22 @@ const downloadBook = async (url, name, onProgress, signal) => {
 
     response.data.on("data", (chunk) => {
       downloaded += chunk.length;
-      if (totalLength) {
+      const now = Date.now();
+
+      // Update every 500ms to avoid too many updates
+      if (now - lastUpdate > 500 && totalLength) {
+        const elapsed = (now - startTime) / 1000; // seconds
+        const speed = downloaded / elapsed; // bytes per second
+        const speedKB = (speed / 1024).toFixed(1); // KB/s
+
         const percentage = Math.round((downloaded / totalLength) * 100);
-        onProgress?.({ percentage, total: totalLength, current: downloaded, status: "Downloading..." });
+        onProgress?.({
+          percentage,
+          total: totalLength,
+          current: downloaded,
+          status: `Downloading... (${speedKB} KB/s)`,
+        });
+        lastUpdate = now;
       }
     });
 

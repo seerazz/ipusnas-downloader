@@ -47,8 +47,8 @@
         --sidebar: var(--mantle);
         --card: var(--surface0);
         --border: var(--surface1);
-        --radius: 16px;
-        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --radius: 12px;
+        --transition: all 0.2s ease;
       }
 
       /* Catppuccin Latte (Light) */
@@ -171,33 +171,42 @@
       }
 
       .btn {
-        padding: 0.65rem 1rem;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: none;
         cursor: pointer;
-        transition: var(--transition);
-        border: 1px solid transparent;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
+        white-space: nowrap;
+      }
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .btn:active:not(:disabled) {
+        transform: translateY(0);
       }
       .btn-primary {
         background: var(--primary);
-        color: var(--base);
+        color: white;
+        box-shadow: 0 4px 14px 0 rgba(137, 180, 250, 0.25);
       }
-      .btn-primary:hover {
-        background: var(--text);
+      .btn-primary:hover:not(:disabled) {
+        background: var(--blue);
       }
       .btn-outline {
         background: transparent;
-        border-color: var(--border);
+        border: 1px solid var(--border);
         color: var(--text);
       }
-      .btn-outline:hover {
-        background: var(--surface1);
-        border-color: var(--overlay0);
+      .btn-outline:hover:not(:disabled) {
+        background: var(--surface0);
+        border-color: var(--primary);
       }
       .btn-danger {
         color: var(--red);
@@ -221,7 +230,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2.5rem;
+        margin-bottom: 1.5rem;
         gap: 1rem;
         flex-wrap: wrap;
       }
@@ -232,22 +241,47 @@
       }
 
       .search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
         background: var(--mantle);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 0.6rem 1rem;
-        width: 350px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        padding-left: 1rem;
+        transition: var(--transition);
+        min-width: 0;
+      }
+      .search-box:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(137, 180, 250, 0.1);
       }
       .search-box input {
         background: transparent;
         border: none;
         color: var(--text);
-        outline: none;
+        padding: 0.6rem 2.5rem 0.6rem 0.6rem;
         width: 100%;
+        outline: none;
         font-size: 0.9rem;
+      }
+      .search-clear {
+        position: absolute;
+        right: 0.75rem;
+        cursor: pointer;
+        color: var(--subtext0);
+        opacity: 0.6;
+        transition: all 0.2s;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+      }
+      .search-clear:hover {
+        opacity: 1;
+        color: var(--red);
+        transform: scale(1.1);
       }
 
       .sort-select {
@@ -260,46 +294,111 @@
         outline: none;
       }
 
-      .grid {
+      .grid-covers {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+      }
+      @media (max-width: 640px) {
+        .grid-covers {
+          grid-template-columns: repeat(1, 1fr);
+          gap: 0.5rem;
+        }
       }
       .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 1.5rem;
-        transition: var(--transition);
+        background: var(--surface0);
+        border-radius: 16px;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
+        border: 1px solid var(--border);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        gap: 0.4rem;
         position: relative;
+        padding: 0.5rem;
       }
       .card:hover {
-        transform: translateY(-4px);
-        border-color: var(--overlay0);
-        box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border-color: var(--primary);
       }
       .book-meta h3 {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 600;
+        color: var(--text);
         margin-bottom: 4px;
-        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-clamp: 2;
+        overflow: hidden;
+        word-break: break-word;
+        cursor: help;
       }
       .book-meta p {
         font-size: 0.85rem;
         color: var(--subtext0);
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        line-clamp: 1;
+        overflow: hidden;
       }
 
       .actions {
         display: flex;
-        gap: 8px;
+        flex-direction: column;
+        gap: 4px;
         margin-top: auto;
+        width: 100%;
+      }
+      .overlay-actions {
+        display: flex;
+        gap: 4px;
+        width: 100%;
+        margin-top: 2px;
       }
       .btn-icon {
         flex: 0;
-        width: 42px;
+        width: 36px;
+      }
+      .btn-circle {
+        flex: 1;
+        height: 30px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background: var(--mantle);
+        border: 1px solid var(--border);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+      .btn-circle:hover {
+        background: var(--surface1);
+        color: var(--primary);
+      }
+      .btn-circle-danger:hover {
+        background: rgba(243, 139, 168, 0.1);
+        color: var(--red);
+        border-color: var(--red);
+      }
+      .btn-primary {
+        height: 36px;
+        padding: 0 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--primary);
+        color: var(--base);
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
       }
 
       .status-badge {
@@ -311,20 +410,87 @@
         gap: 6px;
         margin-bottom: 8px;
       }
+      .badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--subtext1);
+        background: var(--surface0);
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        border: 1px solid var(--border);
+      }
+
+      /* Book Covers */
+      .book-cover-container {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .book-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+      .card:hover .book-cover {
+        transform: scale(1.05);
+      }
+      .book-cover-placeholder {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        opacity: 0.3;
+      }
+
+      /* Spinner */
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--surface0);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 0.8s linear infinite;
+      }
+      .spinner-small {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(148, 161, 178, 0.1);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
 
       /* Progress Bar */
       .progress-box {
         background: var(--mantle);
-        padding: 12px;
-        border-radius: 12px;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
         margin-top: 4px;
       }
       .progress-bar {
-        height: 6px;
+        height: 5px;
         background: var(--surface1);
         border-radius: 10px;
         overflow: hidden;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
       .progress-inner {
         height: 100%;
@@ -369,9 +535,7 @@
         margin-bottom: 12px;
         transition: var(--transition);
       }
-      .auth-box input:focus {
-        border-color: var(--primary);
-      }
+
       .error-text {
         color: var(--red);
         font-size: 0.85rem;
@@ -432,9 +596,18 @@
         }
       }
       .skeleton {
-        background: var(--surface1);
-        border-radius: 6px;
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        background: linear-gradient(90deg, var(--surface0) 0%, var(--surface1) 50%, var(--surface0) 100%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s ease-in-out infinite;
+        border-radius: 8px;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
       }
       .skeleton-card {
         pointer-events: none;
@@ -452,7 +625,32 @@
         transform: translateY(0);
       }
 
-      /* Mobile Support */
+      /* Empty State */
+      .empty-state {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        color: var(--subtext0);
+        text-align: center;
+      }
+      .empty-state svg {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 1rem;
+        opacity: 0.2;
+      }
+      .empty-state p {
+        font-size: 1rem;
+        font-weight: 500;
+      }
+      .empty-state span {
+        font-size: 0.85rem;
+        opacity: 0.6;
+        margin-top: 0.5rem;
+      }
       @media (max-width: 992px) {
         aside {
           position: fixed;
@@ -520,9 +718,9 @@
           <h1>iPusnas</h1>
         </div>
         <p style="color: var(--subtext0); margin-bottom: 2rem">Sign in to sync your library</p>
-        <input type="email" x-model="auth.email" placeholder="Email" @keyup.enter="login" />
-        <input type="password" x-model="auth.password" placeholder="Password" @keyup.enter="login" />
-        <button class="btn btn-primary" style="width: 100%; padding: 0.8rem" @click="login" :disabled="auth.loading">
+        <input type="email" x-model="auth.email" placeholder="Email" @keyup.enter="login()" />
+        <input type="password" x-model="auth.password" placeholder="Password" @keyup.enter="login()" />
+        <button class="btn btn-primary" style="width: 100%; padding: 0.8rem" @click="login()" :disabled="auth.loading">
           <span x-show="!auth.loading">Enter Library</span>
           <span x-show="auth.loading">Authenticating...</span>
         </button>
@@ -552,10 +750,13 @@
 
         <nav style="flex: 1">
           <div class="nav-item" :class="{ 'active': currentTab === 'shelf' }" @click="setTab('shelf')">
-            <span>📚 Shelf Library</span>
+            <span>📚 Borrowed Books</span>
           </div>
           <div class="nav-item" :class="{ 'active': currentTab === 'local' }" @click="setTab('local')">
-            <span>💾 Offline Books</span>
+            <span>💾 My Library</span>
+          </div>
+          <div class="nav-item" :class="{ 'active': currentTab === 'discover' }" @click="setTab('discover')">
+            <span>🔍 Search Books</span>
           </div>
         </nav>
 
@@ -568,85 +769,122 @@
             margin-bottom: 1rem;
           "
         >
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem">
-            <p style="font-size: 0.75rem; color: var(--subtext0); text-transform: uppercase">Status</p>
-            <button
-              @click="clearTemp"
-              style="
-                background: none;
-                border: none;
-                font-size: 0.75rem;
-                color: var(--red);
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                opacity: 0.8;
-              "
-            >
-              <span>🧹 Clear (<span x-text="tempSize"></span>)</span>
-            </button>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px">
-            <span style="color: var(--subtext1)">Synced</span>
+          <p style="font-size: 0.75rem; color: var(--subtext0); text-transform: uppercase; margin-bottom: 0.75rem">
+            Library Stats
+          </p>
+
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px">
+            <span style="color: var(--subtext1)">Borrowed</span>
             <span style="font-weight: 700; color: var(--primary)" x-text="books.length">0</span>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.85rem">
-            <span style="color: var(--subtext1)">Offline</span>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px">
+            <span style="color: var(--subtext1)">Downloaded</span>
             <span style="font-weight: 700; color: var(--green)" x-text="localBooks.length">0</span>
           </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.75rem">
+            <span style="color: var(--subtext1)">Temp Cache</span>
+            <span style="font-weight: 700; color: var(--yellow)" x-text="tempSize">...</span>
+          </div>
+
+          <button class="btn btn-outline" @click="clearTemp()" style="width: 100%; font-size: 0.8rem; padding: 0.5rem">
+            🧹 Clear Cache
+          </button>
         </div>
 
-        <button class="nav-item btn-logout" @click="logout">
-          <span>Logout Session</span>
+        <button class="btn btn-outline" @click="logout()" style="width: 100%; margin-bottom: 1rem">
+          🚪 Logout Session
         </button>
       </aside>
 
       <main>
         <div class="header">
-          <h2 x-text="currentTab === 'shelf' ? 'Shelf Library' : 'Offline Books'"></h2>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <h2
+              x-text="currentTab === 'shelf' ? 'Borrowed Books' : (currentTab === 'local' ? 'My Library' : 'Search Books')"
+            ></h2>
+            <div x-show="isLoading || discoverLoading" class="spinner-small" x-cloak></div>
+          </div>
 
-          <div style="display: flex; gap: 10px; flex: 1; justify-content: flex-end">
-            <div class="search-box">
-              <span>🔍</span>
-              <input type="text" x-model="searchQuery" placeholder="Search books..." />
-            </div>
+          <div style="display: flex; gap: 12px; flex: 1; justify-content: flex-end; align-items: center; min-width: 0">
+            <!-- Shelf/Local Search & Actions -->
+            <template x-if="currentTab !== 'discover'">
+              <div style="display: flex; gap: 12px; align-items: center; flex: 1; justify-content: flex-end">
+                <div class="search-box" style="width: 100%; max-width: 350px">
+                  <span>🔍</span>
+                  <input type="text" x-model="searchQuery" placeholder="Search books..." />
+                  <span x-show="searchQuery" class="search-clear" @click="searchQuery = ''">✕</span>
+                </div>
+                <select class="sort-select" x-model="sortBy">
+                  <option value="title">Sort by Title</option>
+                  <option value="author">Sort by Author</option>
+                </select>
+                <button class="btn btn-outline" @click="fetchData()" :disabled="isLoading" style="white-space: nowrap">
+                  <span x-text="isLoading ? 'Syncing...' : 'Sync Library'"></span>
+                </button>
+              </div>
+            </template>
 
-            <select class="sort-select" x-model="sortBy">
-              <option value="title">Sort by Title</option>
-              <option value="author">Sort by Author</option>
-            </select>
+            <!-- Discover Search -->
+            <template x-if="currentTab === 'discover'">
+              <div style="display: flex; gap: 12px; align-items: center; flex: 1; justify-content: flex-end">
+                <div class="search-box" style="width: 100%; max-width: 400px">
+                  <span>🔍</span>
+                  <input
+                    type="text"
+                    x-model="discoverQuery"
+                    placeholder="Search thousands of books..."
+                    @keyup.enter="searchCatalog()"
+                  />
+                  <span
+                    x-show="discoverQuery"
+                    class="search-clear"
+                    @click="discoverQuery = ''; discoverBooks = []; hasSearched = false"
+                    >✕</span
+                  >
+                </div>
+                <button
+                  class="btn btn-primary"
+                  @click="searchCatalog()"
+                  :disabled="discoverLoading"
+                  style="min-width: 140px"
+                >
+                  <span x-show="!discoverLoading">Search Catalog</span>
+                  <div x-show="discoverLoading" class="spinner"></div>
+                </button>
+                <!-- Result count -->
+                <div
+                  x-show="hasSearched && discoverBooks.length > 0"
+                  style="font-size: 0.85rem; color: var(--subtext0); white-space: nowrap"
+                >
+                  <span x-text="discoverBooks.length"></span> of <span x-text="discoverTotal"></span>
+                </div>
+              </div>
+            </template>
 
-            <button class="btn btn-outline btn-icon" @click="toggleTheme" title="Toggle Theme">
+            <!-- Always visible Theme Toggle -->
+            <button class="btn btn-outline btn-icon" @click="toggleTheme()" title="Toggle Theme" style="flex-shrink: 0">
               <span x-show="theme === 'dark'">☀️</span>
               <span x-show="theme === 'light'">🌙</span>
-            </button>
-            <button class="btn btn-outline" @click="fetchData" :disabled="isLoading">
-              <span x-text="isLoading ? 'Syncing...' : 'Sync Library'"></span>
             </button>
           </div>
         </div>
 
         <!-- Skeleton Grid (Loading State) -->
-        <div class="grid" x-show="isLoading">
+        <div class="grid-covers" x-show="isLoading">
           <template x-for="i in 8">
             <div class="card skeleton-card">
-              <div class="skeleton" style="width: 60%; height: 24px; margin-bottom: 8px"></div>
-              <div class="skeleton" style="width: 40%; height: 16px"></div>
-              <div style="margin-top: auto; display: flex; gap: 8px">
-                <div class="skeleton" style="flex: 1; height: 36px; border-radius: 8px"></div>
-              </div>
+              <div
+                class="skeleton"
+                style="width: 100%; aspect-ratio: 1/1; border-radius: 12px; margin-bottom: 12px"
+              ></div>
+              <div class="skeleton" style="width: 60%; height: 20px; margin-bottom: 8px"></div>
+              <div class="skeleton" style="width: 40%; height: 14px"></div>
             </div>
           </template>
         </div>
 
         <!-- Shelf Grid -->
-        <div
-          class="grid"
-          x-show="currentTab === 'shelf' && !isLoading"
-          style="display: none"
-          x-show.important="currentTab === 'shelf' && !isLoading"
-        >
+        <div class="grid-covers" x-show="currentTab === 'shelf' && !isLoading" x-cloak>
           <template x-for="book in filteredShelf" :key="book.book_id">
             <div
               class="card"
@@ -654,88 +892,228 @@
               x-transition:enter-start="slide-up-enter-from"
               x-transition:enter-end="slide-up-enter-to"
             >
+              <div class="book-cover-container">
+                <template x-if="book.cover_url">
+                  <img :src="book.cover_url" class="book-cover" loading="lazy" />
+                </template>
+                <template x-if="!book.cover_url">
+                  <div class="book-cover-placeholder">📖</div>
+                </template>
+              </div>
+
               <div class="book-meta">
-                <h3 x-text="book.book_title"></h3>
+                <h3 x-text="book.book_title" :title="book.book_title"></h3>
                 <p x-text="book.book_author"></p>
               </div>
 
-              <!-- Progress Bar -->
-              <template x-if="downloads[book.book_id]">
-                <div class="progress-box">
-                  <div class="progress-bar">
-                    <div class="progress-inner" :style="`width: ${downloads[book.book_id].percentage}%`"></div>
-                  </div>
-                  <div class="progress-text">
-                    <span x-text="downloads[book.book_id].status"></span>
-                    <span x-text="`${downloads[book.book_id].percentage}%`"></span>
-                  </div>
-                  <button
-                    class="btn btn-outline btn-danger"
-                    style="width: 100%; margin-top: 8px; font-size: 0.75rem; padding: 4px"
-                    @click="abortDownload(book.book_id)"
-                  >
-                    Stop Download
-                  </button>
-                </div>
-              </template>
-
-              <!-- Actions -->
-              <div class="actions" x-show="!downloads[book.book_id]">
-                <template x-if="book.isLocal">
-                  <div style="width: 100%">
-                    <div class="status-badge"><span>●</span> Synced</div>
-                    <div class="actions">
-                      <button
-                        class="btn btn-primary"
-                        style="flex: 1"
-                        @click="openFile(book.safeName, book.localFilename)"
-                      >
-                        Read
-                      </button>
-                      <button class="btn btn-outline btn-icon" @click="openFolder(book.safeName)">📁</button>
-                      <button class="btn btn-outline btn-icon btn-danger" @click="deleteBook(book.safeName)">🗑</button>
+              <!-- Action Stack -->
+              <div class="actions">
+                <!-- Progress -->
+                <template x-if="downloads[book.book_id]">
+                  <div class="progress-box">
+                    <div class="progress-bar" style="margin-bottom: 2px">
+                      <div class="progress-inner" :style="`width: ${downloads[book.book_id].percentage}%`"></div>
                     </div>
+                    <div class="progress-text" style="margin-bottom: 4px">
+                      <span x-text="downloads[book.book_id].status"></span>
+                      <span x-text="`${downloads[book.book_id].percentage}%`" style="font-weight: 700"></span>
+                    </div>
+                    <button
+                      class="btn btn-primary"
+                      style="
+                        width: 100%;
+                        height: 28px;
+                        font-size: 0.75rem;
+                        background: var(--red);
+                        color: white;
+                        border-radius: 6px;
+                      "
+                      @click="abortDownload(book.book_id)"
+                    >
+                      Stop
+                    </button>
                   </div>
                 </template>
-                <template x-if="!book.isLocal">
-                  <button class="btn btn-primary" style="width: 100%" @click="startDownload(book.book_id)">
-                    Download
-                  </button>
+
+                <!-- Normal Controls -->
+                <template x-if="!downloads[book.book_id]">
+                  <div style="display: flex; flex-direction: column; gap: 4px">
+                    <button
+                      class="btn btn-primary"
+                      style="width: 100%"
+                      @click="startDownload(book.book_id)"
+                      x-show="!book.isLocal"
+                    >
+                      Download
+                    </button>
+                    <button
+                      class="btn btn-primary"
+                      style="width: 100%"
+                      @click="openFile(book.safeName, book.localFilename)"
+                      x-show="book.isLocal"
+                    >
+                      Read Now
+                    </button>
+
+                    <div class="overlay-actions" style="margin-top: 2px">
+                      <button
+                        class="btn-circle"
+                        title="Open Folder"
+                        @click="openFolder(book.safeName)"
+                        x-show="book.isLocal"
+                      >
+                        📁
+                      </button>
+                      <button class="btn-circle" title="Return Book" @click="returnBook(book.id)">🔄</button>
+                      <button
+                        class="btn-circle btn-circle-danger"
+                        title="Delete"
+                        @click="deleteBook(book.safeName)"
+                        x-show="book.isLocal"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </div>
                 </template>
               </div>
             </div>
           </template>
 
           <!-- Empty Shelf State -->
-          <div
-            x-show="filteredShelf.length === 0 && !isLoading"
-            style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--subtext0)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              style="width: 64px; height: 64px; margin-bottom: 1rem; opacity: 0.5"
-            >
+          <div x-show="filteredShelf.length === 0 && !isLoading" class="empty-state" x-transition>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                stroke-width="1.5"
                 d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
               />
             </svg>
-            <p>No books found via search.</p>
+            <p>Your borrowed books shelf is empty.</p>
+            <span>Borrow books from the catalog to get started.</span>
+          </div>
+        </div>
+
+        <!-- Discover Grid -->
+        <div class="grid-covers" x-show="currentTab === 'discover'" x-cloak>
+          <template x-for="book in discoverBooks" :key="book.id">
+            <div
+              class="card"
+              x-transition:enter="slide-up-enter-active"
+              x-transition:enter-start="slide-up-enter-from"
+              x-transition:enter-end="slide-up-enter-to"
+            >
+              <div class="book-cover-container">
+                <template x-if="book.cover_url">
+                  <img :src="book.cover_url" class="book-cover" loading="lazy" />
+                </template>
+                <template x-if="!book.cover_url">
+                  <div class="book-cover-placeholder">📖</div>
+                </template>
+              </div>
+              <div class="book-meta">
+                <h3 x-text="book.book_title" :title="book.book_title"></h3>
+                <p x-text="book.author_name || book.book_author"></p>
+              </div>
+
+              <div class="actions" style="margin-top: auto">
+                <button
+                  class="btn"
+                  :class="books.some(b => b.book_id === book.id) ? 'btn-outline' : 'btn-primary'"
+                  style="width: 100%"
+                  @click="borrowCatalogBook(book.id)"
+                  :disabled="book.borrowing || books.some(b => b.book_id === book.id)"
+                >
+                  <template x-if="books.some(b => b.book_id === book.id)">
+                    <span>✓ Already Borrowed</span>
+                  </template>
+                  <template x-if="!books.some(b => b.book_id === book.id) && !book.borrowing">
+                    <span>Borrow</span>
+                  </template>
+                  <template x-if="book.borrowing">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px">
+                      <div class="spinner" style="width: 14px; height: 14px"></div>
+                      <span>Borrowing...</span>
+                    </div>
+                  </template>
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <div x-show="discoverBooks.length === 0 && !discoverLoading" class="empty-state" x-transition>
+            <template x-if="!hasSearched">
+              <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+                <p>Discover thousands of books.</p>
+                <span>Search the catalog by title or author.</span>
+              </div>
+            </template>
+            <template x-if="hasSearched">
+              <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+                <p>No books found for "<span x-text="discoverQuery"></span>".</p>
+                <span>Try adjusting your search terms.</span>
+              </div>
+            </template>
+          </div>
+
+          <!-- Load More Button -->
+          <div
+            x-show="discoverBooks.length > 0 && discoverTotal > discoverBooks.length"
+            style="grid-column: 1/-1; display: flex; justify-content: center; padding: 2rem 0"
+          >
+            <button
+              class="btn btn-outline"
+              @click="loadMoreDiscover()"
+              :disabled="discoverLoading"
+              style="min-width: 220px"
+            >
+              <span x-show="!discoverLoading"
+                >Load More (<span x-text="discoverTotal - discoverBooks.length"></span> remaining)</span
+              >
+              <template x-if="discoverLoading">
+                <div class="spinner"></div>
+              </template>
+            </button>
+          </div>
+
+          <!-- Skeleton Loading (Initial) -->
+          <div
+            class="grid-covers"
+            x-show="discoverLoading && discoverBooks.length === 0"
+            style="grid-column: 1/-1; width: 100%"
+          >
+            <template x-for="i in 5">
+              <div class="card skeleton-card">
+                <div
+                  class="skeleton"
+                  style="width: 100%; aspect-ratio: 1/1; border-radius: 12px; margin-bottom: 12px"
+                ></div>
+                <div class="skeleton" style="width: 60%; height: 20px; margin-bottom: 8px"></div>
+                <div class="skeleton" style="width: 40%; height: 14px"></div>
+              </div>
+            </template>
           </div>
         </div>
 
         <!-- Local Grid -->
-        <div
-          class="grid"
-          x-show="currentTab === 'local' && !isLoading"
-          style="display: none"
-          x-show.important="currentTab === 'local' && !isLoading"
-        >
+        <div class="grid-covers" x-show="currentTab === 'local' && !isLoading" x-cloak>
           <template x-for="book in filteredLocal" :key="book.id">
             <div
               class="card"
@@ -743,43 +1121,50 @@
               x-transition:enter-start="slide-up-enter-from"
               x-transition:enter-end="slide-up-enter-to"
             >
+              <div class="book-cover-container">
+                <template x-if="book.cover_url">
+                  <img :src="book.cover_url" class="book-cover" loading="lazy" />
+                </template>
+                <template x-if="!book.cover_url">
+                  <div class="book-cover-placeholder">💾</div>
+                </template>
+              </div>
               <div class="book-meta">
-                <h3 x-text="book.title"></h3>
-                <p x-text="book.format"></p>
-                <div
-                  style="font-size: 0.75rem; color: var(--subtext0); margin-top: 4px"
-                  x-text="new Date(book.addedAt).toLocaleDateString()"
-                ></div>
+                <h3 x-text="book.title" :title="book.title"></h3>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span class="badge" x-text="book.format"></span>
+                  <span
+                    style="font-size: 0.7rem; color: var(--subtext0)"
+                    x-text="new Date(book.addedAt).toLocaleDateString()"
+                  ></span>
+                </div>
               </div>
               <div class="actions">
-                <button class="btn btn-primary" style="flex: 1" @click="openFile(book.id, book.filename)">Read</button>
-                <button class="btn btn-outline btn-icon" @click="openFolder(book.id)">📁</button>
-                <button class="btn btn-outline btn-icon btn-danger" @click="deleteBook(book.id)">🗑</button>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <button class="btn btn-primary" style="width: 100%" @click="openFile(book.id, book.filename)">
+                    Read Now
+                  </button>
+                  <div class="overlay-actions">
+                    <button class="btn-circle" title="Open Folder" @click="openFolder(book.id)">📁</button>
+                    <button class="btn-circle btn-circle-danger" title="Delete" @click="deleteBook(book.id)">🗑</button>
+                  </div>
+                </div>
               </div>
             </div>
           </template>
 
           <!-- Empty Local State -->
-          <div
-            x-show="filteredLocal.length === 0"
-            style="grid-column: 1/-1; text-align: center; color: var(--subtext0); padding: 4rem"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              style="width: 64px; height: 64px; margin-bottom: 1rem; opacity: 0.5"
-            >
+          <div x-show="filteredLocal.length === 0 && !isLoading" class="empty-state" x-transition>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                stroke-width="1.5"
                 d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
               />
             </svg>
-            <p>Your offline library is empty.</p>
-            <p style="font-size: 0.85rem; opacity: 0.7; margin-top: 0.5rem">Download books from the Shelf!</p>
+            <p>Your library is empty.</p>
+            <span>Books you download will be available offline here.</span>
           </div>
         </div>
       </main>
@@ -792,6 +1177,13 @@
           currentTab: "shelf", // 'shelf' | 'local'
           mobileMenuOpen: false,
           isLoading: false,
+          async apiFetch(url, options = {}) {
+            const res = await fetch(url, options);
+            if (res.status === 401) {
+              this.isLoggedIn = false;
+            }
+            return res;
+          },
           searchQuery: "",
           sortBy: "title", // 'title' | 'author'
           tempSize: "...",
@@ -810,6 +1202,14 @@
             error: "",
           },
 
+          // Discover
+          discoverBooks: [],
+          discoverQuery: "",
+          discoverLoading: false,
+          discoverOffset: 0,
+          discoverTotal: 0,
+          hasSearched: false,
+
           async init() {
             // Theme Init
             document.documentElement.setAttribute("data-theme", this.theme);
@@ -817,7 +1217,7 @@
             // Check auth on load
             this.isLoading = true;
             try {
-              const res = await fetch("/api/books");
+              const res = await this.apiFetch("/api/books");
               const data = await res.json();
               if (data.success) {
                 this.isLoggedIn = true;
@@ -827,7 +1227,7 @@
 
                 // Restore active downloads state
                 try {
-                  const activeRes = await fetch("/api/downloads/active");
+                  const activeRes = await this.apiFetch("/api/downloads/active");
                   const activeData = await activeRes.json();
 
                   if (activeData.success) {
@@ -856,7 +1256,7 @@
             this.auth.loading = true;
             this.auth.error = "";
             try {
-              const res = await fetch("/api/login", {
+              const res = await this.apiFetch("/api/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: this.auth.email, password: this.auth.password }),
@@ -878,14 +1278,14 @@
 
           async logout() {
             if (!confirm("Logout?")) return;
-            await fetch("/api/logout", { method: "POST" });
+            await this.apiFetch("/api/logout", { method: "POST" });
             window.location.reload();
           },
 
           async clearTemp() {
             if (!confirm("Clear temporary files? This will cancel pending downloads.")) return;
             try {
-              const res = await fetch("/api/clear-temp", { method: "POST" });
+              const res = await this.apiFetch("/api/clear-temp", { method: "POST" });
               const data = await res.json();
               if (data.success) {
                 this.showToast(`Cleared ${data.count} temporary files`, "success");
@@ -901,22 +1301,23 @@
           async abortDownload(bookId) {
             if (!confirm("Are you sure you want to stop this download?")) return;
 
+            // Check if download has actually started or is just queued
+            const wasQueued = this.downloads[bookId]?.status?.includes("Queued");
+
             // Optimistic update
-            const oldStatus = this.downloads[bookId];
-            delete this.downloads[bookId];
+            if (this.downloads[bookId]) {
+              this.downloads[bookId].status = "Canceling...";
+              this.downloads[bookId].manualCancel = true;
+            }
 
             try {
-              const res = await fetch("/api/downloads/cancel/" + bookId, { method: "POST" });
-              const data = await res.json();
-              if (data.success) {
+              const res = await this.apiFetch("/api/downloads/cancel/" + bookId, { method: "POST" });
+              if (res.ok && !wasQueued) {
+                // Only show toast if download had started (not just queued)
                 this.showToast("Download cancelled", "success");
-              } else {
-                this.downloads[bookId] = oldStatus; // Revert if failed
-                this.showToast("Failed to stop download", "error");
               }
             } catch (e) {
-              this.downloads[bookId] = oldStatus;
-              this.showToast("Connection error", "error");
+              console.error("Cancel failed", e);
             }
           },
 
@@ -928,7 +1329,7 @@
 
           async fetchTempSize() {
             try {
-              const res = await fetch("/api/temp-size");
+              const res = await this.apiFetch("/api/temp-size");
               const data = await res.json();
               if (data.success) this.tempSize = data.size;
             } catch {}
@@ -949,7 +1350,7 @@
           },
 
           async fetchLocal() {
-            const res = await fetch("/api/library");
+            const res = await this.apiFetch("/api/library");
             const data = await res.json();
             if (data.success) this.localBooks = data.books;
           },
@@ -967,7 +1368,7 @@
               }
 
               try {
-                const res = await fetch("/api/downloads/active");
+                const res = await this.apiFetch("/api/downloads/active");
                 const data = await res.json();
 
                 if (data.success) {
@@ -977,9 +1378,17 @@
                   // Check for completion
                   backgroundIds.forEach((id) => {
                     if (!activeMap[id]) {
-                      // Job is no longer in active map -> It finished (or failed)
+                      // Job is no longer in active map -> It finished (or failed/canceled)
+                      const status = this.downloads[id]?.status?.toLowerCase() || "";
+                      const wasCanceled =
+                        status.includes("stopping") || status.includes("canceling") || status.includes("canceled");
+
                       delete this.downloads[id];
-                      completedAny = true;
+
+                      // Only toast if it wasn't a manual cancel (which has its own toast)
+                      if (!wasCanceled) {
+                        completedAny = true;
+                      }
                     } else {
                       // Still active? Update progress!
                       this.downloads[id].percentage = activeMap[id].percentage;
@@ -1002,6 +1411,90 @@
             this.mobileMenuOpen = false;
             this.searchQuery = "";
             if (tab === "local") this.fetchLocal();
+            if (tab === "discover") {
+              this.discoverQuery = "";
+              this.discoverBooks = [];
+              this.discoverOffset = 0;
+              this.discoverTotal = 0;
+              this.hasSearched = false;
+            }
+          },
+
+          async searchCatalog(isMore = false) {
+            if (!this.discoverQuery) return;
+            if (isMore && (this.discoverLoading || this.discoverBooks.length >= this.discoverTotal)) return;
+
+            this.discoverLoading = true;
+            if (!isMore) {
+              this.discoverOffset = 0;
+              this.hasSearched = true;
+            } else {
+              this.discoverOffset += 25;
+            }
+
+            try {
+              const res = await this.apiFetch(
+                `/api/discover/search?q=${encodeURIComponent(this.discoverQuery)}&offset=${this.discoverOffset}`
+              );
+              const data = await res.json();
+              if (data.success) {
+                const newBooks = (data.data || []).map((b) => ({ ...b, borrowing: false }));
+                this.discoverBooks = isMore ? [...this.discoverBooks, ...newBooks] : newBooks;
+                this.discoverTotal = data.meta?.total || this.discoverBooks.length;
+              }
+            } catch (e) {
+              console.error("Search error:", e);
+              this.showToast(isMore ? "Failed to load more results" : "Catalog search failed", "error");
+            } finally {
+              this.discoverLoading = false;
+            }
+          },
+
+          async loadMoreDiscover() {
+            return this.searchCatalog(true);
+          },
+
+          async borrowCatalogBook(bookId) {
+            const book = this.discoverBooks.find((b) => b.id === bookId);
+            if (book) book.borrowing = true;
+
+            try {
+              const res = await this.apiFetch("/api/discover/borrow", {
+                method: "POST",
+                body: JSON.stringify({ bookId }),
+              });
+              const data = await res.json();
+              if (data.success) {
+                this.showToast("Book borrowed successfully!", "success");
+                this.fetchData();
+              } else {
+                this.showToast(data.message || "Borrow failed", "error");
+              }
+            } catch (e) {
+              this.showToast("Borrow request failed", "error");
+            } finally {
+              if (book) book.borrowing = false;
+            }
+          },
+
+          async returnBook(borrowBookId) {
+            if (!confirm("Return this book to the library? it will be removed from your shelf.")) return;
+
+            try {
+              const res = await this.apiFetch("/api/discover/return", {
+                method: "POST",
+                body: JSON.stringify({ borrowBookId }),
+              });
+              const data = await res.json();
+              if (data.success) {
+                this.showToast("Book returned successfully!", "success");
+                this.fetchData(); // Sync library
+              } else {
+                this.showToast(data.message || "Return failed", "error");
+              }
+            } catch (e) {
+              this.showToast("Return request failed", "error");
+            }
           },
 
           // Getters for filtering/sorting
@@ -1035,7 +1528,7 @@
             this.fetchTempSize(); // Update immediately
 
             try {
-              const response = await fetch("/api/download/" + bookId, { method: "POST" });
+              const response = await this.apiFetch("/api/download/" + bookId, { method: "POST" });
               const reader = response.body.getReader();
               const decoder = new TextDecoder();
 
@@ -1060,16 +1553,22 @@
                       this.fetchData();
                       this.fetchTempSize(); // Update on complete
                     } else if (data.type === "error") {
+                      const wasCanceled = this.downloads[bookId]?.manualCancel;
                       delete this.downloads[bookId];
-                      this.showToast(data.message, "error");
+                      if (!wasCanceled) {
+                        this.showToast(data.message, "error");
+                      }
                       this.fetchTempSize(); // Update on error
                     }
                   }
                 }
               }
             } catch (e) {
+              const wasCanceled = this.downloads[bookId]?.manualCancel;
               delete this.downloads[bookId];
-              this.showToast("Download failed", "error");
+              if (!wasCanceled) {
+                this.showToast("Download failed", "error");
+              }
               this.fetchTempSize(); // Update on failure
             }
           },
@@ -1079,13 +1578,13 @@
           },
 
           async openFolder(safeName) {
-            await fetch(`/api/open-folder/${safeName}`, { method: "POST" });
+            await this.apiFetch(`/api/open-folder/${safeName}`, { method: "POST" });
           },
 
           async deleteBook(safeName) {
             if (!confirm("Delete this book?")) return;
             try {
-              const res = await fetch(`/api/delete/${safeName}`, { method: "POST" });
+              const res = await this.apiFetch(`/api/delete/${safeName}`, { method: "POST" });
               if (res.ok) {
                 this.showToast("Book deleted", "success");
                 this.fetchData();

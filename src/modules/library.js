@@ -1,39 +1,53 @@
 const path = require("path");
 const { BOOKS_DIR } = require("../config");
 
-const getLocalBooks = async () => {
+const normalize = (s) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]/gi, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const getLocalBooks = async (remoteBooks = []) => {
   try {
     const glob = new Bun.Glob("*/*.{pdf,epub}");
     const books = [];
 
-    // Scan for PDF/EPUBs one level deep
-    // Pattern matches: [DIR]/[FILE].pdf or [DIR]/[FILE].epub
     for await (const file of glob.scan({ cwd: BOOKS_DIR, onlyFiles: true })) {
       if (file.includes("_decrypted")) {
         const dir = path.dirname(file);
         const filename = path.basename(file);
         const fullPath = path.join(BOOKS_DIR, file);
+        const bookFolder = path.dirname(fullPath);
 
-        // Get stats for birthtime
         const fileRef = Bun.file(fullPath);
-        const addedAt = await fileRef.lastModified; // Bun file prop
+        const addedAt = fileRef.lastModified;
+
+        const coverPath = path.join(bookFolder, "cover.jpg");
+        let localCover = null;
+        try {
+          const coverFile = Bun.file(coverPath);
+          if (await coverFile.exists()) {
+            localCover = `/books/${dir}/cover.jpg`;
+          }
+        } catch (e) {}
+
+        // Find matching remote book for cover fallback
+        const normalizedDir = normalize(dir);
+        const remoteBook = remoteBooks.find((rb) => normalize(rb.book_title) === normalizedDir);
 
         books.push({
           id: dir,
           title: dir.replace(/_/g, " "),
           filename: filename,
           path: fullPath,
+          cover_url: localCover || remoteBook?.cover_url,
           format: filename.toLowerCase().endsWith(".pdf") ? "PDF" : "EPUB",
           addedAt: new Date(addedAt),
         });
       }
     }
 
-    // Note: The previous logic had a fallback for non-decrypted files.
-    // The Glob pattern "*/*.{pdf,epub}" combined with the if check simplifies this.
-    // If you want strictly the "best" file per folder, we might need to group by folder.
-
-    // Group by folder to emulate "best file" logic
     const bookMap = new Map();
     for (const book of books) {
       if (!bookMap.has(book.id) || book.filename.includes("_decrypted")) {
@@ -41,19 +55,39 @@ const getLocalBooks = async () => {
       }
     }
 
-    return Array.from(bookMap.values());
+    return Array.from(bookMap.values()).sort((a, b) => b.addedAt - a.addedAt);
   } catch (err) {
     console.error("Error reading library:", err);
     return [];
   }
 };
 
-const getLocalBook = async (safeName) => {
-  const books = await getLocalBooks();
-  return books.find((b) => b.id === safeName);
+const getSyncedLibrary = async (remoteBooks) => {
+  const localBooks = await getLocalBooks();
+
+  return remoteBooks.map((rb) => {
+    const rbSafe = normalize(rb.book_title);
+    const localBook = localBooks.find((lb) => normalize(lb.id) === rbSafe);
+
+    return {
+      ...rb,
+      isLocal: !!localBook,
+      safeName: localBook
+        ? localBook.id
+        : rb.book_title
+            .trim()
+            .replace(/[^a-z0-9_\-\.]/gi, "_")
+            .replace(/_+/g, "_"),
+      localFilename: localBook ? localBook.filename : null,
+      localFormat: localBook ? localBook.format : null,
+      // Use local cover if available, otherwise fall back to remote cover
+      localCoverUrl: localBook?.cover_url,
+      cover_url: localBook?.cover_url || rb.cover_url,
+    };
+  });
 };
 
 module.exports = {
   getLocalBooks,
-  getLocalBook,
+  getSyncedLibrary,
 };

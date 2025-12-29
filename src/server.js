@@ -6,7 +6,15 @@ const path = require("path");
 
 const { login, listBorrowedBooks } = require("./modules/auth");
 const { processBook } = require("./modules/processor");
-const { getLocalBooks } = require("./modules/library");
+const { getLocalBooks, getSyncedLibrary } = require("./modules/library");
+const {
+  searchBooks,
+  getBookDetail,
+  getEpustaka,
+  borrowBook,
+  performBorrow,
+  returnBook,
+} = require("./modules/discovery");
 const { BOOKS_DIR, TOKEN_PATH, TEMP_DIR } = require("./config");
 
 const app = new Hono();
@@ -49,33 +57,8 @@ app.get("/api/books", async (c) => {
       data: { access_token },
     } = await tokenFile.json();
 
-    const [remoteBooks, localBooks] = await Promise.all([listBorrowedBooks(access_token), getLocalBooks()]);
-
-    // Cross-reference
-    const books = remoteBooks.map((rb) => {
-      const normalize = (s) =>
-        s
-          .toLowerCase()
-          .replace(/[^a-z0-9]/gi, "_")
-          .replace(/_+/g, "_")
-          .replace(/^_+|_+$/g, "");
-      const rbSafe = normalize(rb.book_title);
-      // Try to find a match by relaxed id/title matching
-      const localBook = localBooks.find((lb) => normalize(lb.id) === rbSafe);
-
-      return {
-        ...rb,
-        isLocal: !!localBook,
-        safeName: localBook
-          ? localBook.id
-          : rb.book_title
-              .trim()
-              .replace(/[^a-z0-9_\-\.]/gi, "_")
-              .replace(/_+/g, "_"),
-        localFilename: localBook ? localBook.filename : null,
-        localFormat: localBook ? localBook.format : null,
-      };
-    });
+    const remoteBooks = await listBorrowedBooks(access_token);
+    const books = await getSyncedLibrary(remoteBooks);
 
     return c.json({ success: true, books });
   } catch (err) {
@@ -85,7 +68,22 @@ app.get("/api/books", async (c) => {
 
 app.get("/api/library", async (c) => {
   try {
-    const localBooks = await getLocalBooks();
+    const tokenFile = Bun.file(TOKEN_PATH);
+    let remoteBooks = [];
+
+    // Try to get remote books for cover fallback
+    if (await tokenFile.exists()) {
+      try {
+        const {
+          data: { access_token },
+        } = await tokenFile.json();
+        remoteBooks = await listBorrowedBooks(access_token);
+      } catch (e) {
+        // If fetching remote books fails, continue with empty array
+      }
+    }
+
+    const localBooks = await getLocalBooks(remoteBooks);
     return c.json({ success: true, books: localBooks });
   } catch (err) {
     return c.json({ success: false, message: err.message }, 500);
@@ -104,6 +102,24 @@ app.post("/api/download/:bookId", async (c) => {
       await stream.writeSSE({ data: JSON.stringify({ type: "error", message: err.message }) });
     }
   });
+});
+
+app.post("/api/discover/return", async (c) => {
+  try {
+    const tokenFile = Bun.file(TOKEN_PATH);
+    if (!(await tokenFile.exists())) {
+      return c.json({ success: false, message: "Not logged in" }, 401);
+    }
+    const {
+      data: { access_token },
+    } = await tokenFile.json();
+    const { borrowBookId } = await c.req.json();
+
+    const result = await returnBook(access_token, borrowBookId);
+    return c.json({ success: true, data: result });
+  } catch (err) {
+    return c.json({ success: false, message: err.message }, 500);
+  }
 });
 
 app.get("/api/downloads/active", (c) => {
@@ -166,6 +182,63 @@ app.post("/api/open-folder/:safeName", async (c) => {
   } catch {
     return c.json({ success: false, message: "Folder not found" }, 404);
   }
+});
+
+app.get("/api/discover/search", async (c) => {
+  const query = c.req.query("q");
+  const offset = c.req.query("offset") || 0;
+  const tokenFile = Bun.file(TOKEN_PATH);
+
+  if (!(await tokenFile.exists())) {
+    return c.json({ success: false, message: "Not authenticated" }, 401);
+  }
+
+  try {
+    const {
+      data: { access_token },
+    } = await tokenFile.json();
+    const result = await searchBooks(access_token, query, offset);
+    return c.json({ success: true, ...result });
+  } catch (err) {
+    return c.json({ success: false, message: err.message }, 500);
+  }
+});
+
+app.post("/api/discover/borrow", async (c) => {
+  const { bookId } = await c.req.json();
+  const tokenFile = Bun.file(TOKEN_PATH);
+
+  if (!(await tokenFile.exists())) {
+    return c.json({ success: false, message: "Not authenticated" }, 401);
+  }
+
+  try {
+    const {
+      data: { access_token, id: user_id },
+    } = await tokenFile.json();
+
+    const result = await performBorrow(access_token, user_id, bookId);
+    return c.json({ success: true, ...result });
+  } catch (err) {
+    return c.json({ success: false, message: err.message }, 500);
+  }
+});
+
+app.get("/books/:safeName/cover.jpg", async (c) => {
+  const { safeName } = c.req.param();
+  const coverPath = path.join(BOOKS_DIR, safeName, "cover.jpg");
+
+  const file = Bun.file(coverPath);
+  if (await file.exists()) {
+    return new Response(file, {
+      headers: {
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "public, max-age=31536000",
+      },
+    });
+  }
+
+  return c.json({ success: false, message: "Cover not found" }, 404);
 });
 
 app.get("/api/files/:safeName/:filename", async (c) => {

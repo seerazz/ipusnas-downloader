@@ -1,26 +1,47 @@
-# iPusnas Downloader
+# iPusnas Downloader V3 Light
 
-A modern, high-performance toolkit to download and decrypt DRM-protected books from [ipusnas.perpusnas.go.id](https://ipusnas2.perpusnas.go.id/). Built for speed with **Bun** and **Hono**.
+A modern, production-ready web application to download and manage DRM-protected books from [iPusnas](https://ipusnas2.perpusnas.go.id/). Built with **Bun**, **Hono**, and **Alpine.js**.
 
-## ✨ Key Features
+## ✨ Features
 
-- **Smart Downloader**: Automatically decrypts and packages books into high-quality PDF or EPUB formats.
-- **Queue Manager**: Limits concurrent downloads (max 2) to prevent system overload, with smart auto-queueing.
-- **Live Sync**: Real-time progress tracking that survives page refreshes ("Background Sync").
-- **Full Control**: Cancel any download instantly with the **Stop** button.
-- **Pro Dashboard**: A clean, "Catppuccin Mocha" aesthetic UI with real-time search, library statistics, and instant filtering.
-- **Theme Toggle**: Switch between **Dark (Mocha)** and **Light (Latte)** modes to suit your viewing environment. 🌗
-- **Library Cleanup**: Reclaim storage space with a one-click 🗑 **Delete** feature for any local book.
-- **Local Serving**: Open and read your books directly in the browser or your preferred local reader.
+### 📚 Library Management
+
+- **Borrowed Books**: Browse and manage your borrowed books from iPusnas
+- **My Library**: Access downloaded books offline with cover images
+- **Search Books**: Discover and borrow from the entire iPusnas catalog
+- **Smart Status**: See which books you've already borrowed in search results
+
+### 📥 Smart Downloads
+
+- **Queue System**: Automatic queue management (max 2 concurrent downloads)
+- **Real-time Progress**: Live progress tracking with download speed (KB/s)
+- **Background Sync**: Downloads continue even if you refresh the page
+- **Instant Cancel**: Stop any download with one click
+- **DRM Decryption**: Automatically decrypts and packages books
+
+### 🎨 Premium UI/UX
+
+- **V3 Light Design**: Clean, compact interface with subtle animations
+- **Catppuccin Theme**: Beautiful Dark (Mocha) and Light (Latte) modes
+- **Responsive**: Perfect on desktop and mobile (3-column → 2-column)
+- **Micro-interactions**: Hover effects, smooth transitions, shimmer loading
+- **Accessibility**: Keyboard navigation with visible focus states
+
+### 🔧 Smart Features
+
+- **Auto-Auth**: Detects expired sessions and prompts re-login
+- **Cover Fallback**: Shows remote covers when local ones don't exist
+- **Library Stats**: Track borrowed, downloaded, and cache size
+- **One-click Actions**: Download, read, return, delete with ease
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-1.  **Bun**: Ensure you have [Bun](https://bun.sh/) installed.
-2.  **QPDF**: The app uses `qpdf.exe` located in `bin/` for decryption.
+1. **Bun**: Install from [bun.sh](https://bun.sh/)
+2. **QPDF**: Included in `bin/qpdf.exe` for PDF decryption
 
-### Running the App
+### Installation
 
 ```bash
 # Install dependencies
@@ -30,29 +51,105 @@ bun install
 bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) and login with your iPusnas credentials.
 
 ## 🛠 Tech Stack
 
-- **Runtime**: [Bun](https://bun.sh/)
-- **Backend Framework**: [Hono](https://hono.dev/) (Native Bun mode)
-- **Frontend**: Alpine.js (Reactive UI) + CSS (Catppuccin Mocha Palette)
-- **Tooling**: QPDF (Decryption), AdmZip (EPUB packaging)
+**Backend:**
+
+- [Bun](https://bun.sh/) - Fast JavaScript runtime
+- [Hono](https://hono.dev/) - Lightweight web framework
+- QPDF - PDF decryption
+- AdmZip - EPUB packaging
+
+**Frontend:**
+
+- [Alpine.js](https://alpinejs.dev/) - Reactive UI framework
+- Catppuccin - Color palette
+- Vanilla CSS - Styling
 
 ## 📁 Project Structure
 
-- `src/server.js`: Modern Hono server using native Bun exports.
-- `src/index.html`: Reactive Alpine.js frontend.
-- `src/modules/`: Functional core (Auth, Crypto, Downloader, Processor).
-- `bin/`: External binaries for decryption.
-- `books/`: Your decrypted offline library.
+```
+ipusnas-pelir/
+├── src/
+│   ├── index.html          # Frontend UI
+│   ├── server.js           # API routes
+│   ├── config.js           # Configuration
+│   └── modules/
+│       ├── auth.js         # Authentication
+│       ├── discovery.js    # Catalog search & borrow
+│       ├── library.js      # Local & synced books
+│       ├── processor.js    # Download queue & DRM
+│       ├── downloader.js   # File download
+│       ├── crypto.js       # DRM decryption
+│       └── utils.js        # Utilities
+├── books/                  # Downloaded books
+├── temp/                   # Download cache
+└── bin/                    # External binaries
+```
+
+## 🎯 Usage
+
+### Borrowing Books
+
+1. Go to **Search Books** tab
+2. Search for a book by title or author
+3. Click **Borrow** (shows "Already Borrowed" if you have it)
+4. Book appears in **Borrowed Books** tab
+
+### Downloading Books
+
+1. In **Borrowed Books** tab, click **Download**
+2. Watch real-time progress with speed indicator
+3. Downloaded books appear in **My Library** tab
+4. Click **Read Now** to open in browser
+
+### Managing Library
+
+- **Search**: Filter books by title
+- **Sort**: By title or author
+- **Sync**: Refresh borrowed books from server
+- **Delete**: Remove downloaded books
+- **Return**: Return books to iPusnas
+
+## ⚙️ Configuration
+
+Edit `src/config.js` to customize:
+
+- Books directory path
+- Temp cache location
+- API endpoints
+
+## � Features Comparison
+
+| Feature        | V3 Light            | Previous     |
+| -------------- | ------------------- | ------------ |
+| UI Design      | ✅ Modern, compact  | Basic        |
+| Download Speed | ✅ Real-time KB/s   | No indicator |
+| Cover Images   | ✅ Remote fallback  | Local only   |
+| Search Status  | ✅ Already borrowed | No detection |
+| Theme          | ✅ Dark + Light     | Dark only    |
+| Responsive     | ✅ Mobile optimized | Desktop only |
+| Animations     | ✅ Subtle, smooth   | None         |
+
+## 🐛 Known Limitations
+
+- No book preview before borrowing
+- No reading progress tracking
+- No bulk operations
+- Search limited to title/author
+
+## 📝 Credits
+
+Originally inspired by the iPusnas CLI tool. Rebuilt from scratch for modern web with enhanced UX and performance.
+
+## ⚖️ License & Disclaimer
+
+This tool is for **personal use only**. Please respect copyright laws and iPusnas terms of service. Only download books you have legitimately borrowed.
 
 ---
 
-## 📄 Credits
-
-Originally inspired by the iPusnas CLI tool. Enhanced for the modern web for educational purposes and easier access to materials you've already borrowed.
-
----
-
-_Disclaimer: This tool is for personal use only. Please respect copyright laws and the terms of service of IPUSNAS._
+**Version:** 3.0 Light
+**Status:** Production Ready ✅
+**Last Updated:** 2025-12-30
