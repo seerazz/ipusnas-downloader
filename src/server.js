@@ -38,17 +38,16 @@ app.post("/api/login", async (c) => {
 });
 
 app.get("/api/books", async (c) => {
-  try {
-    await fs.access(TOKEN_PATH);
-  } catch {
+  const tokenFile = Bun.file(TOKEN_PATH);
+
+  if (!(await tokenFile.exists())) {
     return c.json({ success: false, message: "Not authenticated" }, 401);
   }
 
   try {
-    const tokenContent = await fs.readFile(TOKEN_PATH, "utf-8");
     const {
       data: { access_token },
-    } = JSON.parse(tokenContent);
+    } = await tokenFile.json();
 
     const [remoteBooks, localBooks] = await Promise.all([listBorrowedBooks(access_token), getLocalBooks()]);
 
@@ -135,27 +134,8 @@ app.post("/api/delete/:safeName", async (c) => {
   }
 });
 
-const getDirSize = async (dir) => {
-  try {
-    const files = await fs.readdir(dir);
-    const sizes = await Promise.all(
-      files.map(async (file) => {
-        try {
-          const filePath = path.join(dir, file);
-          const stats = await fs.stat(filePath);
-          return stats.isDirectory() ? await getDirSize(filePath) : stats.size;
-        } catch (e) {
-          return 0;
-        }
-      })
-    );
-    return sizes.reduce((acc, size) => acc + size, 0);
-  } catch (e) {
-    return 0;
-  }
-};
-
 app.get("/api/temp-size", async (c) => {
+  const { getDirSize } = require("./modules/utils");
   const totalSize = await getDirSize(TEMP_DIR);
   const mb = (totalSize / (1024 * 1024)).toFixed(2);
   return c.json({ success: true, size: `${mb} MB`, bytes: totalSize });

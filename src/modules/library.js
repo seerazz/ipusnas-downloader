@@ -1,53 +1,47 @@
-const fs = require("fs/promises");
 const path = require("path");
 const { BOOKS_DIR } = require("../config");
 
 const getLocalBooks = async () => {
   try {
-    await fs.access(BOOKS_DIR);
-  } catch {
-    return [];
-  }
+    const glob = new Bun.Glob("*/*.{pdf,epub}");
+    const books = [];
 
-  try {
-    const dirs = await fs.readdir(BOOKS_DIR);
-    const books = (
-      await Promise.all(
-        dirs.map(async (dir) => {
-          const dirPath = path.join(BOOKS_DIR, dir);
-          try {
-            const stats = await fs.stat(dirPath);
-            if (stats.isDirectory()) {
-              const files = await fs.readdir(dirPath);
+    // Scan for PDF/EPUBs one level deep
+    // Pattern matches: [DIR]/[FILE].pdf or [DIR]/[FILE].epub
+    for await (const file of glob.scan({ cwd: BOOKS_DIR, onlyFiles: true })) {
+      if (file.includes("_decrypted")) {
+        const dir = path.dirname(file);
+        const filename = path.basename(file);
+        const fullPath = path.join(BOOKS_DIR, file);
 
-              // Look for original decrypted files first
-              let bookFile = files.find((f) => f.includes("_decrypted.pdf") || f.includes("_decrypted.epub"));
+        // Get stats for birthtime
+        const fileRef = Bun.file(fullPath);
+        const addedAt = await fileRef.lastModified; // Bun file prop
 
-              // Fallback: search for any .pdf or .epub
-              if (!bookFile) {
-                bookFile = files.find((f) => f.toLowerCase().endsWith(".pdf") || f.toLowerCase().endsWith(".epub"));
-              }
+        books.push({
+          id: dir,
+          title: dir.replace(/_/g, " "),
+          filename: filename,
+          path: fullPath,
+          format: filename.toLowerCase().endsWith(".pdf") ? "PDF" : "EPUB",
+          addedAt: new Date(addedAt),
+        });
+      }
+    }
 
-              if (bookFile) {
-                const format = bookFile.toLowerCase().endsWith(".pdf") ? "PDF" : "EPUB";
-                return {
-                  id: dir,
-                  title: dir.replace(/_/g, " "),
-                  filename: bookFile,
-                  path: path.join(dirPath, bookFile),
-                  format: format,
-                  addedAt: stats.birthtime,
-                };
-              }
-            }
-          } catch (e) {
-            // Ignore individual folder errors
-          }
-          return null;
-        })
-      )
-    ).filter(Boolean); // Filter out nulls
-    return books;
+    // Note: The previous logic had a fallback for non-decrypted files.
+    // The Glob pattern "*/*.{pdf,epub}" combined with the if check simplifies this.
+    // If you want strictly the "best" file per folder, we might need to group by folder.
+
+    // Group by folder to emulate "best file" logic
+    const bookMap = new Map();
+    for (const book of books) {
+      if (!bookMap.has(book.id) || book.filename.includes("_decrypted")) {
+        bookMap.set(book.id, book);
+      }
+    }
+
+    return Array.from(bookMap.values());
   } catch (err) {
     console.error("Error reading library:", err);
     return [];

@@ -1,4 +1,3 @@
-const fs = require("fs/promises");
 const { createRequest } = require("./api");
 const { API_URLS, TOKEN_PATH } = require("../config");
 
@@ -6,7 +5,7 @@ const login = async (email, password) => {
   try {
     const client = createRequest();
     const { data } = await client.post(API_URLS.LOGIN, { email, password });
-    await fs.writeFile(TOKEN_PATH, JSON.stringify(data, null, 2));
+    await Bun.write(TOKEN_PATH, JSON.stringify(data, null, 2));
     return data;
   } catch (err) {
     throw new Error(`Login failed: ${err.message}`);

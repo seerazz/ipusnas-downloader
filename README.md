@@ -9,6 +9,7 @@ A modern, high-performance toolkit to download and decrypt DRM-protected books f
 - **Live Sync**: Real-time progress tracking that survives page refreshes ("Background Sync").
 - **Full Control**: Cancel any download instantly with the **Stop** button.
 - **Pro Dashboard**: A clean, "Catppuccin Mocha" aesthetic UI with real-time search, library statistics, and instant filtering.
+- **Theme Toggle**: Switch between **Dark (Mocha)** and **Light (Latte)** modes to suit your viewing environment. 🌗
 - **Library Cleanup**: Reclaim storage space with a one-click 🗑 **Delete** feature for any local book.
 - **Local Serving**: Open and read your books directly in the browser or your preferred local reader.
 

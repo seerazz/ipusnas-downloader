@@ -110,16 +110,15 @@ const processBook = async (bookId, onProgress) => {
 };
 
 const executeProcessBook = async (bookId, onProgress, signal) => {
-  try {
-    await fs.access(TOKEN_PATH);
-  } catch {
+  const tokenFile = Bun.file(TOKEN_PATH);
+
+  if (!(await tokenFile.exists())) {
     throw new Error("Token not found. Please login first.");
   }
 
-  const tokenContent = await fs.readFile(TOKEN_PATH, "utf-8");
   const {
     data: { access_token, id: user_id },
-  } = JSON.parse(tokenContent);
+  } = await tokenFile.json();
 
   const {
     data: { id: b_id, book_title, using_drm, file_ext },
