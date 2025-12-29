@@ -5,11 +5,12 @@ A modern, high-performance toolkit to download and decrypt DRM-protected books f
 ## ✨ Key Features
 
 - **Smart Downloader**: Automatically decrypts and packages books into high-quality PDF or EPUB formats.
-- **Concurrent Processing**: Supports multiple parallel downloads without server blocking, thanks to asynchronous `Bun.spawn` tasking.
+- **Queue Manager**: Limits concurrent downloads (max 2) to prevent system overload, with smart auto-queueing.
+- **Live Sync**: Real-time progress tracking that survives page refreshes ("Background Sync").
+- **Full Control**: Cancel any download instantly with the **Stop** button.
 - **Pro Dashboard**: A clean, "Catppuccin Mocha" aesthetic UI with real-time search, library statistics, and instant filtering.
 - **Library Cleanup**: Reclaim storage space with a one-click 🗑 **Delete** feature for any local book.
 - **Local Serving**: Open and read your books directly in the browser or your preferred local reader.
-- **Zero-Friction Sync**: One-click synchronization between your IPUSNAS cloud library and your local offline collection.
 
 ## 🚀 Quick Start
 
@@ -34,13 +35,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - **Runtime**: [Bun](https://bun.sh/)
 - **Backend Framework**: [Hono](https://hono.dev/) (Native Bun mode)
-- **Frontend**: Vanilla JS + CSS (Catppuccin Mocha Palette)
+- **Frontend**: Alpine.js (Reactive UI) + CSS (Catppuccin Mocha Palette)
 - **Tooling**: QPDF (Decryption), AdmZip (EPUB packaging)
 
 ## 📁 Project Structure
 
 - `src/server.js`: Modern Hono server using native Bun exports.
-- `src/index.html`: Optimized atomic-rendering frontend.
+- `src/index.html`: Reactive Alpine.js frontend.
 - `src/modules/`: Functional core (Auth, Crypto, Downloader, Processor).
 - `bin/`: External binaries for decryption.
 - `books/`: Your decrypted offline library.
