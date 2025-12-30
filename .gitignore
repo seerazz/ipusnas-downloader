@@ -1,9 +1,10 @@
 node_modules
-app.js
-temp/*
-token.json
+/app.js
+/temp/*
+/token.json
 *.pdf
-books/*
+/books/*
+/data/*
 src/discover-*.js
 src/brute-search.js
 src/inspect-token.js

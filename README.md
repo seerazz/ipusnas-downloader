@@ -1,4 +1,4 @@
-# iPusnas Downloader V3 Light
+# iPusnas Downloader
 
 A modern, production-ready web application to download and manage DRM-protected books from [iPusnas](https://ipusnas2.perpusnas.go.id/). Built with **Bun**, **Hono**, and **Alpine.js**.
 
@@ -71,19 +71,18 @@ Open [http://localhost:3000](http://localhost:3000) and login with your iPusnas 
 ## 📁 Project Structure
 
 ```
-ipusnas-pelir/
+.
 ├── src/
-│   ├── index.html          # Frontend UI
-│   ├── server.js           # API routes
-│   ├── config.js           # Configuration
-│   └── modules/
-│       ├── auth.js         # Authentication
-│       ├── discovery.js    # Catalog search & borrow
-│       ├── library.js      # Local & synced books
-│       ├── processor.js    # Download queue & DRM
-│       ├── downloader.js   # File download
-│       ├── crypto.js       # DRM decryption
-│       └── utils.js        # Utilities
+│   ├── backend/
+│   │   ├── core/           # Auth, API, Cache
+│   │   ├── services/       # Business Logic (Books, Downloads, Library)
+│   │   └── utils/          # Helpers
+│   ├── frontend/
+│   │   ├── app.js          # Alpine.js Logic
+│   │   ├── index.html      # UI Template
+│   │   └── style.css       # Styling
+│   ├── server.js           # Hono Server Entry
+│   └── config.js           # Shared Config
 ├── books/                  # Downloaded books
 ├── temp/                   # Download cache
 └── bin/                    # External binaries
@@ -138,7 +137,8 @@ Edit `src/config.js` to customize:
 - No book preview before borrowing
 - No reading progress tracking
 - No bulk operations
-- Search limited to title/author
+- **Search Metadata**: Search results show basic info (Title/Author). Detailed metadata (Publisher, Category, File Type) appears after borrowing/downloading.
+- **Smart Actions**: "Download" button automatically becomes "**Read**" if the book is already in your library.
 
 ## 📝 Credits
 
@@ -149,7 +149,3 @@ Originally inspired by the iPusnas CLI tool. Rebuilt from scratch for modern web
 This tool is for **personal use only**. Please respect copyright laws and iPusnas terms of service. Only download books you have legitimately borrowed.
 
 ---
-
-**Version:** 3.0 Light
-**Status:** Production Ready ✅
-**Last Updated:** 2025-12-30

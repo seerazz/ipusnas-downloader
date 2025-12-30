@@ -1,14 +1,17 @@
 const path = require("path");
 
 // Directory Paths
-const ROOT_DIR = path.resolve(__dirname, "..");
-const BOOKS_DIR = path.join(ROOT_DIR, "books");
-const TEMP_DIR = path.join(ROOT_DIR, "temp");
+const ROOT_DIR = path.resolve(__dirname, "../../");
+const DATA_DIR = path.join(ROOT_DIR, "data");
+const BOOKS_DIR = path.join(DATA_DIR, "books");
+const TEMP_DIR = path.join(DATA_DIR, "temp");
+const TOKENS_DIR = path.join(DATA_DIR, "tokens");
 const BIN_DIR = path.join(ROOT_DIR, "bin");
 
 // File Paths
-const TOKEN_PATH = path.join(ROOT_DIR, "token.json");
+const TOKEN_PATH = path.join(TOKENS_DIR, "token.json");
 const QPDF_PATH = path.join(BIN_DIR, "qpdf.exe");
+const CACHE_FILE = path.join(TEMP_DIR, "cache.json");
 
 // API Endpoints
 const API_BASE_URL = "https://api2-ipusnas.perpusnas.go.id/api";
@@ -27,10 +30,12 @@ const API_URLS = {
 
 module.exports = {
   ROOT_DIR,
+  DATA_DIR,
   BOOKS_DIR,
   TEMP_DIR,
-  BIN_DIR,
+  TOKENS_DIR,
   TOKEN_PATH,
   QPDF_PATH,
+  CACHE_FILE,
   API_URLS,
 };

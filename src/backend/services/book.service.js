@@ -1,22 +1,36 @@
-const { createRequest } = require("./api");
+const { createRequest } = require("../core/api");
 const { API_URLS } = require("../config");
+const cache = require("../core/cache");
 
 const searchBooks = async (token, query, offset = 0) => {
+  const cacheKey = `search:${query}:${offset}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
   const client = createRequest({
     headers: { Authorization: `Bearer ${token}` },
   });
   const url = `${API_URLS.SEARCH}?q=${encodeURIComponent(query)}&limit=25&offset=${offset}`;
   const { data } = await client.get(url);
+
+  cache.set(cacheKey, data, 1000 * 60 * 5); // Cache search for 5 minutes
   return data;
 };
 
 const getBookDetail = async (token, bookId) => {
+  const cacheKey = `detail:${bookId}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
   const client = createRequest({
     headers: { Authorization: `Bearer ${token}` },
   });
   const url = API_URLS.BOOK_DETAIL + bookId;
   const { data } = await client.get(url);
-  return data.data || data;
+  const result = data.data || data;
+
+  cache.set(cacheKey, result);
+  return result;
 };
 
 const getEpustaka = async (token, bookId) => {
@@ -42,10 +56,7 @@ const borrowBook = async (token, payload) => {
 };
 
 const performBorrow = async (token, userId, bookId) => {
-  // 1. Get detail to find organization_id
   const detail = await getBookDetail(token, bookId);
-
-  // 2. Get available epustaka
   const epustakas = await getEpustaka(token, bookId);
   const target = Array.isArray(epustakas) ? epustakas[0] : epustakas;
 
@@ -53,7 +64,6 @@ const performBorrow = async (token, userId, bookId) => {
     throw new Error("No available library found for this book");
   }
 
-  // 3. Borrow
   const payload = {
     epustaka_id: target.id,
     user_id: userId,
@@ -78,6 +88,12 @@ const returnBook = async (token, borrowBookId) => {
   return data;
 };
 
+const getBorrowInfo = async (token, bookId) => {
+  const client = createRequest({ headers: { Authorization: `Bearer ${token}` } });
+  const { data } = await client.get(API_URLS.CHECK_BORROW + bookId);
+  return data;
+};
+
 module.exports = {
   searchBooks,
   getBookDetail,
@@ -85,4 +101,5 @@ module.exports = {
   borrowBook,
   performBorrow,
   returnBook,
+  getBorrowInfo,
 };

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iPusnas Downloader</title>
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/app.js"></script>
+  </head>
+  <body x-data="app()">
+    <!-- Toast Container -->
+    <div class="toast-container">
+      <template x-for="toast in toasts" :key="toast.id">
+        <div class="toast" :class="toast.type">
+          <div class="toast-content">
+            <template x-if="toast.type === 'success'"><i data-lucide="check-circle" class="icon-sm"></i></template>
+            <template x-if="toast.type === 'error'"><i data-lucide="alert-circle" class="icon-sm"></i></template>
+            <span x-text="toast.message"></span>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Auth Screen -->
+    <div x-show="!isLoggedIn" class="auth-overlay" x-transition.opacity>
+      <div class="auth-box">
+        <div class="logo auth-logo">
+          <div class="logo-box">i</div>
+          <h1>iPusnas</h1>
+        </div>
+        <p class="auth-subtitle">Sign in to sync your library</p>
+        <div class="input-group">
+          <i data-lucide="mail" class="input-icon"></i>
+          <input
+            type="email"
+            x-model="auth.email"
+            placeholder="Email"
+            @keyup.enter="!auth.loading && login()"
+            class="has-icon"
+            :disabled="auth.loading"
+          />
+        </div>
+        <div class="input-group">
+          <i data-lucide="lock" class="input-icon"></i>
+          <input
+            type="password"
+            x-model="auth.password"
+            placeholder="Password"
+            @keyup.enter="!auth.loading && login()"
+            class="has-icon"
+            :disabled="auth.loading"
+          />
+        </div>
+
+        <button class="btn btn-primary btn-auth" @click="login()" :disabled="auth.loading">
+          <span x-show="!auth.loading">Enter Library</span>
+          <div x-show="auth.loading" class="flex-center" style="gap: 8px">
+            <i data-lucide="loader-2" class="icon-spin"></i>
+            <span>Authenticating...</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="mobile-bar" x-show="isLoggedIn">
+      <div class="logo logo-mobile">
+        <div class="logo-box">i</div>
+        <h1 class="logo-text-mobile">Dashboard</h1>
+      </div>
+      <button class="mobile-btn" @click="mobileMenuOpen = !mobileMenuOpen">
+        <i data-lucide="menu"></i>
+      </button>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-layout" x-show="isLoggedIn" x-transition.opacity>
+      <!-- Mobile Overlay -->
+      <div class="overlay-bg" x-show="mobileMenuOpen" @click="mobileMenuOpen = false" x-transition.opacity></div>
+
+      <aside :class="{ 'active': mobileMenuOpen }">
+        <div class="logo">
+          <div class="logo-box">i</div>
+          <h1>iPusnas</h1>
+        </div>
+
+        <!-- User Profile (Top) -->
+        <div class="user-profile" x-show="isLoggedIn && user">
+          <!-- Avatar -->
+          <div class="user-avatar-wrapper">
+            <template x-if="user.profile_picture_url">
+              <img :src="user.profile_picture_url" class="user-avatar-img" alt="User" />
+            </template>
+            <template x-if="!user.profile_picture_url">
+              <div class="user-avatar">
+                <i data-lucide="user" class="icon-sm"></i>
+              </div>
+            </template>
+          </div>
+
+          <!-- Text -->
+          <div class="user-info">
+            <div x-text="user.name" class="user-name">User</div>
+            <div x-text="user.email" class="user-email">email@example.com</div>
+          </div>
+        </div>
+
+        <nav style="flex: 1">
+          <div class="nav-item" :class="{ 'active': currentTab === 'shelf' }" @click="setTab('shelf')">
+            <i data-lucide="book-open"></i>
+            <span>Borrowed Books</span>
+          </div>
+          <div class="nav-item" :class="{ 'active': currentTab === 'local' }" @click="setTab('local')">
+            <i data-lucide="save"></i>
+            Local
+          </div>
+          <div class="nav-item" :class="{ 'active': currentTab === 'discover' }" @click="setTab('discover')">
+            <i data-lucide="search"></i>
+            <span>Search Book</span>
+          </div>
+        </nav>
+
+        <div class="sidebar-box">
+          <p class="stats-header">Library Stats</p>
+
+          <div class="sidebar-stats-row">
+            <span class="stats-label"> <i data-lucide="book-open" class="icon-xs"></i> Borrowed </span>
+            <span class="stats-value text-primary" x-text="books.length">0</span>
+          </div>
+          <div class="sidebar-stats-row">
+            <span class="stats-label"> <i data-lucide="save" class="icon-xs"></i> Downloaded </span>
+            <span class="stats-value text-green" x-text="localBooks.length">0</span>
+          </div>
+          <div class="sidebar-stats-row">
+            <span class="stats-label"> <i data-lucide="database" class="icon-xs"></i> Temp Cache </span>
+            <span class="stats-value text-yellow" x-text="cacheStats.size || tempSize">...</span>
+          </div>
+          <div class="stats-sub-row">
+            <span class="stats-sub-item">
+              <i data-lucide="files" class="icon-xs"></i> <span x-text="cacheStats.files"></span>
+            </span>
+            <span class="stats-sub-item">
+              <i data-lucide="search" class="icon-xs"></i> <span x-text="cacheStats.items"></span>
+            </span>
+          </div>
+
+          <button class="btn btn-outline btn-clear-cache" @click="clearTemp()">
+            <i data-lucide="trash-2" class="icon-sm"></i>
+            Clear Cache
+          </button>
+        </div>
+
+        <button class="btn btn-danger-outline btn-sidebar-logout" @click="logout()">
+          <i data-lucide="log-out" class="icon-sm"></i>
+          Logout Session
+        </button>
+      </aside>
+
+      <main>
+        <div class="header">
+          <div class="header-title-box">
+            <h2
+              x-text="currentTab === 'shelf' ? 'Borrowed Books' : (currentTab === 'local' ? 'My Library' : 'Search Book')"
+            ></h2>
+            <div x-show="isLoading || discoverLoading" class="spinner-small" x-cloak></div>
+          </div>
+
+          <div class="header-actions">
+            <!-- Shelf/Local Search & Actions -->
+            <template x-if="currentTab !== 'discover'">
+              <div class="header-search-group">
+                <div class="search-box search-box-wide">
+                  <i data-lucide="search" class="icon-sm search-icon-input"></i>
+                  <input type="text" x-model="searchQuery" placeholder="Search books..." />
+                  <span x-show="searchQuery" class="search-clear search-clear-wrapper" @click="searchQuery = ''">
+                    <i data-lucide="x" class="icon-xs"></i>
+                  </span>
+                </div>
+                <button class="btn btn-outline btn-nowrap" @click="fetchData()" :disabled="isLoading">
+                  <i data-lucide="refresh-cw" :class="{ 'spin': isLoading }" class="icon-sm"></i>
+                  <span x-text="isLoading ? 'Syncing...' : 'Sync Library'"></span>
+                </button>
+              </div>
+            </template>
+
+            <!-- Discover Search -->
+            <template x-if="currentTab === 'discover'">
+              <div class="header-search-group">
+                <div class="search-box search-box-xl">
+                  <i data-lucide="search" class="icon-sm search-icon-input"></i>
+                  <input
+                    type="text"
+                    x-model="discoverQuery"
+                    placeholder="Search thousands of books..."
+                    @keyup.enter="searchCatalog()"
+                    @input="if (!discoverQuery) { hasSearched = false; discoverBooks = []; }"
+                  />
+                  <span
+                    x-show="discoverQuery"
+                    class="search-clear search-clear-wrapper"
+                    @click="discoverQuery = ''; discoverBooks = []; hasSearched = false"
+                    ><i data-lucide="x" class="icon-xs"></i
+                  ></span>
+                </div>
+                <button
+                  class="btn btn-primary"
+                  @click="searchCatalog()"
+                  :disabled="discoverLoading"
+                  style="min-width: 140px"
+                >
+                  <span x-show="!discoverLoading">Search Book</span>
+                  <div x-show="discoverLoading" class="spinner"></div>
+                </button>
+                <!-- Result count -->
+                <div x-show="hasSearched && discoverBooks.length > 0" class="result-count">
+                  <span x-text="discoverBooks.length"></span> of <span x-text="discoverTotal"></span>
+                </div>
+              </div>
+            </template>
+
+            <!-- Always visible Theme Toggle -->
+            <button class="btn btn-outline btn-icon theme-toggle" @click="toggleTheme()" title="Toggle Theme">
+              <i x-show="theme === 'dark'" data-lucide="sun" class="icon-sm"></i>
+              <i x-show="theme === 'light'" data-lucide="moon" class="icon-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-covers" x-show="isLoading">
+          <template x-for="i in 8">
+            <div class="card">
+              <div class="card-body">
+                <div class="book-cover-container">
+                  <div class="skeleton skeleton-cover fill"></div>
+                </div>
+                <div class="book-meta">
+                  <div class="skeleton text-lg"></div>
+                  <div class="skeleton text-md"></div>
+                  <div style="display: flex; gap: 4px">
+                    <div class="skeleton badge"></div>
+                    <div class="skeleton badge"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="actions">
+                <div class="skeleton btn-block"></div>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Shelf Grid -->
+        <div class="grid-covers" x-show="currentTab === 'shelf' && !isLoading" x-cloak>
+          <template x-for="book in filteredShelf" :key="book.book_id">
+            <div
+              class="card"
+              x-transition:enter="slide-up-enter-active"
+              x-transition:enter-start="slide-up-enter-from"
+              x-transition:enter-end="slide-up-enter-to"
+            >
+              <div class="card-body">
+                <div class="book-cover-container">
+                  <template x-if="book.cover_url">
+                    <img :src="book.cover_url" class="book-cover" loading="lazy" />
+                  </template>
+                  <template x-if="!book.cover_url">
+                    <div class="book-cover-placeholder"><i data-lucide="book" class="icon-lg"></i></div>
+                  </template>
+                </div>
+
+                <div class="book-meta">
+                  <h3 x-text="book.book_title" :title="book.book_title"></h3>
+                  <p class="meta-row">
+                    <i data-lucide="user" class="icon-xs"></i> <span x-text="book.book_author"></span>
+                  </p>
+                  <div class="meta-grid">
+                    <template
+                      x-if="book.publisher_name || (book.catalog_info && book.catalog_info.organization_group_name)"
+                    >
+                      <div class="meta-tag">
+                        <i data-lucide="building-2" class="icon-xs"></i>
+                        <span x-text="book.publisher_name || book.catalog_info.organization_group_name"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.publish_date || book.publication_year">
+                      <div class="meta-tag">
+                        <i data-lucide="calendar" class="icon-xs"></i>
+                        <span x-text="book.publish_date || book.publication_year"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.catalog_info && book.catalog_info.language_name">
+                      <div class="meta-tag">
+                        <i data-lucide="globe" class="icon-xs"></i>
+                        <span x-text="book.catalog_info.language_name"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.category_name || (book.catalog_info && book.catalog_info.category_name)">
+                      <div class="meta-tag">
+                        <i data-lucide="archive" class="icon-xs"></i>
+                        <span x-text="book.category_name || book.catalog_info.category_name"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.localFormat || book.file_ext">
+                      <div class="meta-tag meta-tag-surface">
+                        <i data-lucide="file-type" class="icon-xs"></i>
+                        <span
+                          x-text="(book.localFormat || book.file_ext).toUpperCase()"
+                          style="font-weight: 700"
+                        ></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="actions">
+                <template x-if="downloads[book.book_id]">
+                  <div class="progress-box">
+                    <div class="progress-bar" style="margin-bottom: 2px">
+                      <div class="progress-inner" :style="`width: ${downloads[book.book_id].percentage}%`"></div>
+                    </div>
+                    <div class="progress-text" style="margin-bottom: 4px">
+                      <span style="display: flex; align-items: center; gap: 4px">
+                        <i data-lucide="zap" class="icon-xs" style="color: var(--yellow)"></i>
+                        <span x-text="downloads[book.book_id].status"></span>
+                      </span>
+                      <span x-text="`${downloads[book.book_id].percentage}%`" style="font-weight: 700"></span>
+                    </div>
+                    <button
+                      class="btn btn-primary"
+                      style="width: 100%; height: 32px; font-size: 0.75rem; background: var(--red); color: white"
+                      @click="abortDownload(book.book_id)"
+                    >
+                      <i data-lucide="octagon-pause" class="icon-xs"></i>
+                      Stop
+                    </button>
+                  </div>
+                </template>
+
+                <template x-if="!downloads[book.book_id]">
+                  <div style="display: flex; gap: 6px; width: 100%">
+                    <button
+                      class="btn btn-primary"
+                      style="flex: 1"
+                      @click="startDownload(book.book_id)"
+                      x-show="!book.isLocal"
+                    >
+                      <i data-lucide="download" class="icon-sm"></i>
+                      <span>Download</span>
+                    </button>
+                    <button
+                      class="btn btn-primary"
+                      style="flex: 1"
+                      @click="openFile(book.safeName, book.localFilename)"
+                      x-show="book.isLocal"
+                    >
+                      <i data-lucide="book-open" class="icon-sm"></i>
+                      <span>Read</span>
+                    </button>
+
+                    <button
+                      class="btn-action"
+                      title="Open Folder"
+                      @click="openFolder(book.safeName)"
+                      x-show="book.isLocal"
+                    >
+                      <i data-lucide="folder-open" class="icon-sm"></i>
+                    </button>
+                    <button class="btn-action" title="Return" @click="returnBook(book.id)">
+                      <i data-lucide="rotate-ccw" class="icon-sm"></i>
+                    </button>
+                    <button
+                      class="btn-action btn-action-danger"
+                      title="Delete"
+                      @click="deleteBook(book.safeName)"
+                      x-show="book.isLocal"
+                    >
+                      <i data-lucide="trash-2" class="icon-sm"></i>
+                    </button>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- Empty Shelf State -->
+          <div x-show="filteredShelf.length === 0 && !isLoading" class="empty-state" x-transition>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+              />
+            </svg>
+            <p>Your borrowed books shelf is empty.</p>
+            <span>Borrow books from the catalog to get started.</span>
+          </div>
+        </div>
+
+        <!-- Discover Grid -->
+        <div class="grid-covers" x-show="currentTab === 'discover'" x-cloak>
+          <template x-for="book in discoverBooks" :key="book.id">
+            <div
+              class="card"
+              x-transition:enter="slide-up-enter-active"
+              x-transition:enter-start="slide-up-enter-from"
+              x-transition:enter-end="slide-up-enter-to"
+            >
+              <div class="card-body">
+                <div class="book-cover-container">
+                  <template x-if="book.cover_url">
+                    <img :src="book.cover_url" class="book-cover" loading="lazy" />
+                  </template>
+                  <template x-if="!book.cover_url">
+                    <div class="book-cover-placeholder"><i data-lucide="book" class="icon-lg"></i></div>
+                  </template>
+                </div>
+                <div class="book-meta">
+                  <h3 x-text="book.book_title" :title="book.book_title"></h3>
+                  <p class="meta-row">
+                    <i data-lucide="user" class="icon-xs"></i>
+                    <span x-text="book.author_name || book.book_author"></span>
+                  </p>
+                  <div class="meta-grid">
+                    <template
+                      x-if="book.publisher_name || (book.catalog_info && book.catalog_info.organization_group_name)"
+                    >
+                      <div class="meta-tag">
+                        <i data-lucide="building-2" class="icon-xs"></i>
+                        <span x-text="book.publisher_name || book.catalog_info.organization_group_name"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.publish_date || book.publication_year">
+                      <div class="meta-tag">
+                        <i data-lucide="calendar" class="icon-xs"></i>
+                        <span x-text="book.publish_date || book.publication_year"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.catalog_info && book.catalog_info.language_name">
+                      <div class="meta-tag">
+                        <i data-lucide="globe" class="icon-xs"></i>
+                        <span x-text="book.catalog_info.language_name"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.category_name || (book.catalog_info && book.catalog_info.category_name)">
+                      <div class="meta-tag">
+                        <i data-lucide="archive" class="icon-xs"></i>
+                        <span x-text="book.category_name || book.catalog_info.category_name"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.isbn">
+                      <div class="meta-tag">
+                        <i data-lucide="id-card" class="icon-xs"></i> <span x-text="book.isbn"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="actions" style="margin-top: auto">
+                <button
+                  class="btn"
+                  :class="books.some(b => b.book_id === book.id) ? 'btn-outline' : 'btn-primary'"
+                  style="width: 100%"
+                  @click="borrowCatalogBook(book.id)"
+                  :disabled="book.borrowing || books.some(b => b.book_id === book.id)"
+                >
+                  <template x-if="books.some(b => b.book_id === book.id)">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px">
+                      <i data-lucide="check-circle" class="icon-sm"></i>
+                      <span>Already Borrowed</span>
+                    </div>
+                  </template>
+                  <template x-if="!books.some(b => b.book_id === book.id) && !book.borrowing">
+                    <span style="display: flex; align-items: center; gap: 6px">
+                      <i data-lucide="plus-circle" class="icon-sm"></i>
+                      Borrow to Shelf
+                    </span>
+                  </template>
+                  <template x-if="book.borrowing">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px">
+                      <i data-lucide="refresh-cw" class="icon-sm spin"></i>
+                      <span>Borrowing...</span>
+                    </div>
+                  </template>
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <div x-show="discoverBooks.length === 0 && !discoverLoading" class="empty-state" x-transition>
+            <template x-if="!hasSearched">
+              <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+                <p>Discover thousands of books.</p>
+                <span>Search the catalog by title or author.</span>
+              </div>
+            </template>
+            <template x-if="hasSearched">
+              <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+                <p>No books found for "<span x-text="discoverQuery"></span>".</p>
+                <span>Try adjusting your search terms.</span>
+              </div>
+            </template>
+          </div>
+
+          <!-- Load More Button -->
+          <div x-show="discoverBooks.length > 0 && discoverTotal > discoverBooks.length" class="load-more-container">
+            <button
+              class="btn btn-outline"
+              @click="loadMoreDiscover()"
+              :disabled="discoverLoading"
+              style="min-width: 220px"
+            >
+              <span x-show="!discoverLoading"
+                >Load More (<span x-text="discoverTotal - discoverBooks.length"></span> remaining)</span
+              >
+              <template x-if="discoverLoading">
+                <div class="spinner"></div>
+              </template>
+            </button>
+          </div>
+
+          <!-- Skeleton Loading (Initial) -->
+          <div class="grid-covers skeleton-grid" x-show="discoverLoading && discoverBooks.length === 0">
+            <template x-for="i in 8">
+              <div class="card skeleton-card">
+                <div class="skeleton-body">
+                  <div class="skeleton skeleton-cover"></div>
+                  <div class="skeleton-text">
+                    <div class="skeleton" style="width: 70%; height: 16px; margin-bottom: 8px"></div>
+                    <div class="skeleton" style="width: 40%; height: 12px"></div>
+                  </div>
+                </div>
+                <div class="skeleton skeleton-actions"></div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Local Grid -->
+        <div class="grid-covers" x-show="currentTab === 'local' && !isLoading" x-cloak>
+          <template x-for="book in filteredLocal" :key="book.id">
+            <div
+              class="card"
+              x-transition:enter="slide-up-enter-active"
+              x-transition:enter-start="slide-up-enter-from"
+              x-transition:enter-end="slide-up-enter-to"
+            >
+              <div class="card-body">
+                <div class="book-cover-container">
+                  <template x-if="book.cover_url">
+                    <img :src="book.cover_url" class="book-cover" loading="lazy" />
+                  </template>
+                  <template x-if="!book.cover_url">
+                    <div class="book-cover-placeholder"><i data-lucide="book" class="icon-lg"></i></div>
+                  </template>
+                </div>
+                <div class="book-meta">
+                  <h3 x-text="book.title" :title="book.title"></h3>
+                  <template x-if="book.book_author">
+                    <p class="meta-row">
+                      <i data-lucide="user" class="icon-xs"></i> <span x-text="book.book_author"></span>
+                    </p>
+                  </template>
+                  <div class="meta-grid">
+                    <template
+                      x-if="book.publisher_name || (book.catalog_info && book.catalog_info.organization_group_name)"
+                    >
+                      <div class="meta-tag">
+                        <i data-lucide="building-2" class="icon-xs"></i>
+                        <span x-text="book.publisher_name || book.catalog_info.organization_group_name"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.publish_date || book.publication_year">
+                      <div class="meta-tag">
+                        <i data-lucide="calendar" class="icon-xs"></i>
+                        <span x-text="book.publish_date || book.publication_year"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.catalog_info && book.catalog_info.language_name">
+                      <div class="meta-tag">
+                        <i data-lucide="globe" class="icon-xs"></i>
+                        <span x-text="book.catalog_info.language_name"></span>
+                      </div>
+                    </template>
+                    <template x-if="book.category_name || (book.catalog_info && book.catalog_info.category_name)">
+                      <div class="meta-tag">
+                        <i data-lucide="archive" class="icon-xs"></i>
+                        <span x-text="book.category_name || book.catalog_info.category_name"></span>
+                      </div>
+                    </template>
+                    <div class="meta-tag meta-tag-surface">
+                      <i data-lucide="file-type" class="icon-xs"></i> <span x-text="book.format"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="actions">
+                <div style="display: flex; gap: 6px; width: 100%">
+                  <button
+                    class="btn btn-primary"
+                    style="flex: 1"
+                    @click="openFile(book.folderName || book.id, book.filename)"
+                  >
+                    <i data-lucide="book-open" class="icon-sm"></i>
+                    <span>Read</span>
+                  </button>
+                  <button class="btn-action" title="Open Folder" @click="openFolder(book.folderName || book.id)">
+                    <i data-lucide="folder-open" class="icon-sm"></i>
+                  </button>
+                  <button
+                    class="btn-action btn-action-danger"
+                    title="Delete"
+                    @click="deleteBook(book.folderName || book.id)"
+                  >
+                    <i data-lucide="trash-2" class="icon-sm"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Empty Local State -->
+          <div x-show="filteredLocal.length === 0 && !isLoading" class="empty-state" x-transition>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
+              />
+            </svg>
+            <p>Your library is empty.</p>
+            <span>Books you download will be available offline here.</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

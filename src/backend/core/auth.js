@@ -4,11 +4,29 @@ const { API_URLS, TOKEN_PATH } = require("../config");
 const login = async (email, password) => {
   try {
     const client = createRequest();
-    const { data } = await client.post(API_URLS.LOGIN, { email, password });
+    const { data } = await client.post(
+      API_URLS.LOGIN,
+      { email, password },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
     await Bun.write(TOKEN_PATH, JSON.stringify(data, null, 2));
     return data;
   } catch (err) {
-    throw new Error(`Login failed: ${err.message}`);
+    const data = err.response?.data;
+    let msg = data?.message || data?.error || err.message;
+
+    // Handle case where message is an object containing the actual message
+    if (typeof msg === "object" && msg !== null && msg.message) {
+      msg = msg.message;
+    }
+
+    if (typeof msg === "object") {
+      msg = JSON.stringify(msg);
+    }
+
+    throw new Error(msg);
   }
 };
 
