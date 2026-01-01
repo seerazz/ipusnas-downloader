@@ -3,6 +3,10 @@ const fs = require("fs/promises");
 const { BOOKS_DIR } = require("../config");
 const { normalizeName, getSafeName } = require("../utils/file.utils");
 
+/**
+ * Scans the local books directory for decrypted book files and matches them with metadata.
+ * @returns {Promise<Array>} List of local books with metadata enrichment.
+ */
 const getLocalBooks = async () => {
   try {
     const glob = new Bun.Glob("*/*.{pdf,epub}");
@@ -80,6 +84,11 @@ const getLocalBooks = async () => {
   }
 };
 
+/**
+ * Synchronizes the remote borrowed books list with local downloads.
+ * @param {Array} remoteBooks - List of books from the API.
+ * @returns {Promise<Array>} Synced book list with 'isLocal' status and local path info.
+ */
 const getSyncedLibrary = async (remoteBooks) => {
   const localBooks = await getLocalBooks();
   // Create a Set of normalized local IDs or titles for fast lookup

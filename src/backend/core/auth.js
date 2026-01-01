@@ -1,6 +1,13 @@
 const { createRequest } = require("./api");
 const { API_URLS, TOKEN_PATH } = require("../config");
 
+/**
+ * Authenticates the user with iPusnas API.
+ * @param {string} email - User email.
+ * @param {string} password - User password.
+ * @returns {Promise<Object>} The authentication response data.
+ * @throws {Error} If authentication fails.
+ */
 const login = async (email, password) => {
   try {
     const client = createRequest();
@@ -30,6 +37,12 @@ const login = async (email, password) => {
   }
 };
 
+/**
+ * Fetches the list of borrowed books for the authenticated user.
+ * @param {string} token - The access token.
+ * @returns {Promise<Array>} List of borrowed books.
+ * @throws {Error} If the request fails.
+ */
 const listBorrowedBooks = async (token) => {
   try {
     const client = createRequest({ headers: { Authorization: `Bearer ${token}` } });
