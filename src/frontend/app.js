@@ -26,6 +26,34 @@ function app() {
     downloads: {}, // Map of bookId -> { percentage, status }
     toasts: [],
 
+    get stats() {
+      const local = this.localBooks;
+      const shelf = this.books;
+
+      const formats = local.reduce((acc, b) => {
+        const fmt = (b.format || b.localFormat || "unknown").toUpperCase();
+        acc[fmt] = (acc[fmt] || 0) + 1;
+        return acc;
+      }, {});
+
+      const categories = shelf.reduce((acc, b) => {
+        const cat = b.category_name || b.catalog_info?.category_name || "Uncategorized";
+        acc[cat] = (acc[cat] || 0) + 1;
+        return acc;
+      }, {});
+
+      const topCategory = Object.entries(categories).sort((a, b) => b[1] - a[1])[0];
+
+      return {
+        shelf: shelf.length,
+        local: local.length,
+        pdf: formats.PDF || 0,
+        epub: formats.EPUB || 0,
+        topCategory: topCategory ? topCategory[0] : "None",
+        topCategoryCount: topCategory ? topCategory[1] : 0,
+      };
+    },
+
     auth: {
       email: "",
       password: "",
@@ -40,6 +68,8 @@ function app() {
     discoverOffset: 0,
     discoverTotal: 0,
     hasSearched: false,
+    searchTimeout: null,
+    searchAbortController: null,
 
     async init() {
       // Theme Init
@@ -76,15 +106,17 @@ function app() {
         // Not logged in, silent fail
       } finally {
         this.isLoading = false;
-        // Watchers for global icon re-init
-        this.$watch("currentTab", () => this.$nextTick(() => lucide.createIcons()));
-        this.$watch("books", () => this.$nextTick(() => lucide.createIcons()));
-        this.$watch("localBooks", () => this.$nextTick(() => lucide.createIcons()));
-        this.$watch("discoverBooks", () => this.$nextTick(() => lucide.createIcons()));
-        this.$watch("theme", () => this.$nextTick(() => lucide.createIcons()));
-        this.$watch("searchQuery", () => this.$nextTick(() => lucide.createIcons()));
 
-        this.$nextTick(() => lucide.createIcons());
+        // Use a more coordinated icon refresher
+        const refreshIcons = () => this.$nextTick(() => lucide.createIcons());
+
+        this.$watch("currentTab", refreshIcons);
+        this.$watch("books", refreshIcons);
+        this.$watch("localBooks", refreshIcons);
+        this.$watch("discoverBooks", refreshIcons);
+        this.$watch("theme", refreshIcons);
+
+        refreshIcons();
       }
     },
     async login() {
@@ -242,6 +274,21 @@ function app() {
       }, 2000);
     },
 
+    handleDiscoverInput() {
+      if (!this.discoverQuery) {
+        this.hasSearched = false;
+        this.discoverBooks = [];
+        clearTimeout(this.searchTimeout);
+        return;
+      }
+
+      // Debounce logic
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        this.searchCatalog();
+      }, 500); // 500ms debounce
+    },
+
     setTab(tab) {
       this.currentTab = tab;
       this.mobileMenuOpen = false;
@@ -261,6 +308,12 @@ function app() {
       if (!this.discoverQuery) return;
       if (isMore && (this.discoverLoading || this.discoverBooks.length >= this.discoverTotal)) return;
 
+      // Abort previous search if any
+      if (this.searchAbortController) {
+        this.searchAbortController.abort();
+      }
+      this.searchAbortController = new AbortController();
+
       this.discoverLoading = true;
       if (!isMore) {
         this.discoverOffset = 0;
@@ -271,7 +324,8 @@ function app() {
 
       try {
         const res = await this.apiFetch(
-          `/api/discover/search?q=${encodeURIComponent(this.discoverQuery)}&offset=${this.discoverOffset}`
+          `/api/discover/search?q=${encodeURIComponent(this.discoverQuery)}&offset=${this.discoverOffset}`,
+          { signal: this.searchAbortController.signal }
         );
         const data = await res.json();
         if (data.success) {
@@ -280,10 +334,13 @@ function app() {
           this.discoverTotal = data.meta?.total || this.discoverBooks.length;
         }
       } catch (e) {
+        if (e.name === "AbortError") return;
         console.error("Search error:", e);
         this.showToast(isMore ? "Failed to load more results" : "Catalog search failed", "error");
       } finally {
-        this.discoverLoading = false;
+        if (!isMore || (this.searchAbortController && !this.searchAbortController.signal.aborted)) {
+          this.discoverLoading = false;
+        }
         // Refresh stats as search results are cached
         this.fetchTempSize();
       }
