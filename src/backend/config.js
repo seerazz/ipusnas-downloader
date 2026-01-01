@@ -19,6 +19,7 @@ const AGENT_BASE_URL = "https://api2-ipusnas.perpusnas.go.id/agent";
 
 const API_URLS = {
   LOGIN: `${API_BASE_URL}/auth/login`,
+  REFRESH: `${API_BASE_URL}/auth/refresh-token`,
   BOOK_DETAIL: `${API_BASE_URL}/webhook/book-detail?book_id=`,
   CHECK_BORROW: `${API_BASE_URL}/webhook/check-borrow-status?book_id=`,
   BORROW_SHELF: `${API_BASE_URL}/webhook/book-borrow-shelf`,

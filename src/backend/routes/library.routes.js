@@ -6,28 +6,26 @@ const { Hono } = require("hono");
 const fs = require("fs/promises");
 const path = require("path");
 const { getLocalBooks } = require("../services/library.service");
-const { BOOKS_DIR, TEMP_DIR, CACHE_FILE, TOKEN_PATH } = require("../config");
+const { BOOKS_DIR, TEMP_DIR, CACHE_FILE } = require("../config");
 const { getDirStats } = require("../utils/file.utils");
 const { listBorrowedBooks } = require("../core/auth");
+const { authMiddleware } = require("../middleware/auth.middleware");
 const logger = require("../utils/logger");
 
 const libraryRoutes = new Hono();
 
-// GET /api/library
-libraryRoutes.get("/library", async (c) => {
+// GET /api/library - Protected with auth middleware
+libraryRoutes.get("/library", authMiddleware, async (c) => {
   try {
-    const tokenFile = Bun.file(TOKEN_PATH);
+    const accessToken = c.get("accessToken");
     let remoteBooks = [];
-    if (await tokenFile.exists()) {
-      try {
-        const {
-          data: { access_token },
-        } = await tokenFile.json();
-        remoteBooks = await listBorrowedBooks(access_token);
-      } catch (e) {
-        logger.debug("Failed to fetch remote books for comparison");
-      }
+
+    try {
+      remoteBooks = await listBorrowedBooks(accessToken);
+    } catch (e) {
+      logger.debug("Failed to fetch remote books for comparison");
     }
+
     const localBooks = await getLocalBooks(remoteBooks);
     return c.json({ success: true, books: localBooks });
   } catch (err) {
@@ -62,7 +60,7 @@ libraryRoutes.get("/temp-size", async (c) => {
         const cacheData = await cacheFile.json();
         cacheCount = Object.keys(cacheData).length;
       }
-    } catch (e) {}
+    } catch (e) { }
 
     return c.json({
       success: true,

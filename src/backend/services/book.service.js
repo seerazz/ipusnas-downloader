@@ -1,4 +1,4 @@
-const { createRequest } = require("../core/api");
+const { createAuthenticatedRequest } = require("../core/api");
 const { API_URLS } = require("../config");
 const cache = require("../core/cache");
 
@@ -7,9 +7,7 @@ const searchBooks = async (token, query, offset = 0) => {
   const cached = cache.get(cacheKey);
   if (cached) return cached;
 
-  const client = createRequest({
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const client = createAuthenticatedRequest(token);
   const url = `${API_URLS.SEARCH}?q=${encodeURIComponent(query)}&limit=25&offset=${offset}`;
   const { data } = await client.get(url);
 
@@ -22,9 +20,7 @@ const getBookDetail = async (token, bookId) => {
   const cached = cache.get(cacheKey);
   if (cached) return cached;
 
-  const client = createRequest({
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const client = createAuthenticatedRequest(token);
   const url = API_URLS.BOOK_DETAIL + bookId;
   const { data } = await client.get(url);
   const result = data.data || data;
@@ -34,18 +30,15 @@ const getBookDetail = async (token, bookId) => {
 };
 
 const getEpustaka = async (token, bookId) => {
-  const client = createRequest({
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const client = createAuthenticatedRequest(token);
   const url = `${API_URLS.EPUSTAKA}?book_id=${bookId}`;
   const { data } = await client.get(url);
   return data.data || data;
 };
 
 const borrowBook = async (token, payload) => {
-  const client = createRequest({
+  const client = createAuthenticatedRequest(token, {
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
       Accept: "application/json",
     },
@@ -76,9 +69,8 @@ const performBorrow = async (token, userId, bookId) => {
 };
 
 const returnBook = async (token, borrowBookId) => {
-  const client = createRequest({
+  const client = createAuthenticatedRequest(token, {
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
       Accept: "application/json",
     },
@@ -89,7 +81,7 @@ const returnBook = async (token, borrowBookId) => {
 };
 
 const getBorrowInfo = async (token, bookId) => {
-  const client = createRequest({ headers: { Authorization: `Bearer ${token}` } });
+  const client = createAuthenticatedRequest(token);
   const { data } = await client.get(API_URLS.CHECK_BORROW + bookId);
   return data;
 };
@@ -103,3 +95,4 @@ module.exports = {
   returnBook,
   getBorrowInfo,
 };
+

@@ -6,6 +6,7 @@ const { Hono } = require("hono");
 const { login, listBorrowedBooks } = require("../core/auth");
 const { TOKEN_PATH } = require("../config");
 const { getSyncedLibrary } = require("../services/library.service");
+const { authMiddleware } = require("../middleware/auth.middleware");
 const logger = require("../utils/logger");
 
 const authRoutes = new Hono();
@@ -37,20 +38,13 @@ authRoutes.post("/logout", async (c) => {
   return c.json({ success: true });
 });
 
-// GET /api/books (Legacy path name for synced library)
-authRoutes.get("/books", async (c) => {
-  const tokenFile = Bun.file(TOKEN_PATH);
-  if (!(await tokenFile.exists())) {
-    return c.json({ success: false, message: "Not authenticated" }, 401);
-  }
-
+// GET /api/books (Legacy path name for synced library) - Protected with auth middleware
+authRoutes.get("/books", authMiddleware, async (c) => {
   try {
-    const tokenData = await tokenFile.json();
-    const {
-      data: { access_token },
-    } = tokenData;
+    const accessToken = c.get("accessToken");
+    const tokenData = c.get("tokenData");
 
-    const remoteBooks = await listBorrowedBooks(access_token);
+    const remoteBooks = await listBorrowedBooks(accessToken);
     const books = await getSyncedLibrary(remoteBooks);
 
     return c.json({

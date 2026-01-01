@@ -1,4 +1,4 @@
-const { createRequest } = require("./api");
+const { createRequest, createAuthenticatedRequest } = require("./api");
 const { API_URLS, TOKEN_PATH } = require("../config");
 
 /**
@@ -45,10 +45,14 @@ const login = async (email, password) => {
  */
 const listBorrowedBooks = async (token) => {
   try {
-    const client = createRequest({ headers: { Authorization: `Bearer ${token}` } });
+    const client = createAuthenticatedRequest(token);
     const { data } = await client.get(API_URLS.BORROW_SHELF);
     return data.data || [];
   } catch (err) {
+    // Re-throw TokenExpiredError as-is for proper handling
+    if (err.name === "TokenExpiredError") {
+      throw err;
+    }
     throw new Error(`Failed to fetch borrowed books: ${err.message}`);
   }
 };

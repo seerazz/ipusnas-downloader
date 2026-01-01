@@ -2,10 +2,11 @@ const fs = require("fs/promises");
 const AdmZip = require("adm-zip");
 const path = require("path");
 const { createRequest } = require("../core/api");
-const { TEMP_DIR, BOOKS_DIR, QPDF_PATH, TOKEN_PATH } = require("../config");
+const { TEMP_DIR, BOOKS_DIR, QPDF_PATH } = require("../config");
 const { getSafeName } = require("../utils/file.utils");
 const { getBookDetail, getBorrowInfo } = require("./book.service");
 const { decryptKey, generatePasswordPDF, generatePasswordZip } = require("../core/crypto");
+const { getValidToken } = require("../core/token.service");
 
 // --- DOWNLOADER SERVICE ---
 
@@ -60,7 +61,7 @@ const downloadFile = async (url, name, onProgress, signal) => {
         await writer.end();
         try {
           await Bun.file(inputPath).delete();
-        } catch (e) {}
+        } catch (e) { }
         reject(new Error("AbortError"));
       };
 
@@ -84,7 +85,7 @@ const downloadFile = async (url, name, onProgress, signal) => {
         await writer.end();
         try {
           await Bun.file(inputPath).delete();
-        } catch (e) {}
+        } catch (e) { }
         reject(err);
       });
     });
@@ -95,7 +96,7 @@ const downloadFile = async (url, name, onProgress, signal) => {
       if (await file.exists()) {
         await file.delete();
       }
-    } catch (e) {}
+    } catch (e) { }
     throw new Error(`Download failed: ${err.message}`);
   }
 };
@@ -117,7 +118,7 @@ const decryptPDF = async (inputPath, password, outputPath, onProgress) => {
       if (await file.exists()) {
         await file.delete();
       }
-    } catch (e) {}
+    } catch (e) { }
   } catch (err) {
     throw new Error(`QPDF decryption failed: ${err.message}`);
   }
@@ -143,7 +144,7 @@ const extractZip = async (inputPath, passwordZip, bookId) => {
       outZip.writeZip(outputFilePath);
       try {
         await Bun.file(inputPath).delete();
-      } catch (e) {}
+      } catch (e) { }
       return outputFilePath;
     } else {
       const entry = entries.find((e) => e.entryName.includes(bookId) || entries.length === 1);
@@ -156,7 +157,7 @@ const extractZip = async (inputPath, passwordZip, bookId) => {
       await Bun.write(outputFilePath, buffer);
       try {
         await Bun.file(inputPath).delete();
-      } catch (e) {}
+      } catch (e) { }
       return outputFilePath;
     }
   } catch (err) {
@@ -216,11 +217,8 @@ const cancelJob = (bookId) => {
 };
 
 const executeProcessBook = async (bookId, onProgress, signal) => {
-  const tokenFile = Bun.file(TOKEN_PATH);
-  if (!(await tokenFile.exists())) throw new Error("Token not found. Please login first.");
-  const {
-    data: { access_token, id: user_id },
-  } = await tokenFile.json();
+  // Use token service for automatic refresh
+  const { accessToken: access_token, userId: user_id } = await getValidToken();
 
   const detail = await getBookDetail(access_token, bookId);
   if (signal?.aborted) throw new Error("AbortError");
@@ -257,7 +255,7 @@ const executeProcessBook = async (bookId, onProgress, signal) => {
       const coverRes = await createRequest().get(cover_url, { responseType: "arraybuffer" });
       await Bun.write(coverPath, coverRes.data);
     }
-  } catch (e) {}
+  } catch (e) { }
 
   if (signal?.aborted) throw new Error("AbortError");
 
