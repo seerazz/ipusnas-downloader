@@ -128,33 +128,41 @@
           </div>
         </nav>
 
-        <div class="sidebar-box">
-          <p class="stats-header">Library Stats</p>
+        <div class="sidebar-box stats-box">
+          <p class="stats-header">Imperial Insights</p>
 
-          <div class="sidebar-stats-row">
-            <span class="stats-label"> <i data-lucide="book-open" class="icon-xs"></i> Borrowed </span>
-            <span class="stats-value text-primary" x-text="books.length">0</span>
+          <div class="stats-grid">
+            <div class="stat-mini-card">
+              <span class="stat-mini-label"><i data-lucide="book-open" class="icon-xs"></i> Borrowed</span>
+              <span class="stat-mini-value text-primary" x-text="stats.shelf">0</span>
+            </div>
+            <div class="stat-mini-card">
+              <span class="stat-mini-label"><i data-lucide="save" class="icon-xs"></i> Saved</span>
+              <span class="stat-mini-value text-green" x-text="stats.local">0</span>
+            </div>
+            <div class="stat-mini-card">
+              <span class="stat-mini-label"><i data-lucide="file-text" class="icon-xs"></i> PDF</span>
+              <span class="stat-mini-value text-sky" x-text="stats.pdf">0</span>
+            </div>
+            <div class="stat-mini-card">
+              <span class="stat-mini-label"><i data-lucide="book-type" class="icon-xs"></i> EPUB</span>
+              <span class="stat-mini-value text-mauve" x-text="stats.epub">0</span>
+            </div>
           </div>
-          <div class="sidebar-stats-row">
-            <span class="stats-label"> <i data-lucide="save" class="icon-xs"></i> Downloaded </span>
-            <span class="stats-value text-green" x-text="localBooks.length">0</span>
-          </div>
-          <div class="sidebar-stats-row">
-            <span class="stats-label"> <i data-lucide="database" class="icon-xs"></i> Temp Cache </span>
-            <span class="stats-value text-yellow" x-text="cacheStats.size || tempSize">...</span>
-          </div>
-          <div class="stats-sub-row">
-            <span class="stats-sub-item">
-              <i data-lucide="files" class="icon-xs"></i> <span x-text="cacheStats.files"></span>
-            </span>
-            <span class="stats-sub-item">
-              <i data-lucide="search" class="icon-xs"></i> <span x-text="cacheStats.items"></span>
-            </span>
+
+          <div class="stats-footer">
+            <div class="stats-footer-row">
+              <span class="stats-footer-label">
+                <i data-lucide="database" class="icon-xs text-peach"></i>
+                Cache Size
+              </span>
+              <span class="stats-footer-value" x-text="cacheStats.size || tempSize">0 B</span>
+            </div>
           </div>
 
           <button class="btn btn-outline btn-clear-cache" @click="clearTemp()">
             <i data-lucide="trash-2" class="icon-sm"></i>
-            Clear Cache
+            Purge Cache
           </button>
         </div>
 
@@ -201,7 +209,7 @@
                     x-model="discoverQuery"
                     placeholder="Search thousands of books..."
                     @keyup.enter="searchCatalog()"
-                    @input="if (!discoverQuery) { hasSearched = false; discoverBooks = []; }"
+                    @input="handleDiscoverInput()"
                   />
                   <span
                     x-show="discoverQuery"
