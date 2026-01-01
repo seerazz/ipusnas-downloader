@@ -1,7 +1,7 @@
 {
   "name": "ipusnas-downloader",
-  "version": "2.2.0",
-  "description": "Modern IPUSNAS digital library manager",
+  "version": "2.5.0",
+  "description": "A premium, high-performance iPusnas digital library companion.",
   "main": "src/server.js",
   "scripts": {
     "start": "bun src/server.js",
@@ -12,9 +12,10 @@
     "ipusnas",
     "downloader",
     "bun",
-    "hono"
+    "hono",
+    "alpinejs"
   ],
-  "author": "",
+  "author": "kuchingneko",
   "license": "MIT",
   "packageManager": "pnpm@10.12.1",
   "dependencies": {

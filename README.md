@@ -1,151 +1,66 @@
-# iPusnas Downloader
+# 🐾 iPusnas Downloader: The Imperial Edition
 
-A modern, production-ready web application to download and manage DRM-protected books from [iPusnas](https://ipusnas2.perpusnas.go.id/). Built with **Bun**, **Hono**, and **Alpine.js**.
+Welcome to the sanctuary of digital literature. **iPusnas Downloader** is a premium, high-performance companion for managing your iPusnas library with elegance and absolute efficiency.
 
-## ✨ Features
+Designed for the **Sovereign Master**, this application combines a robust, modular backend with a breathtaking, fluid frontend experience.
 
-### 📚 Library Management
+## ✨ Features of the Estate
 
-- **Borrowed Books**: Browse and manage your borrowed books from iPusnas
-- **My Library**: Access downloaded books offline with cover images
-- **Search Books**: Discover and borrow from the entire iPusnas catalog
-- **Smart Status**: See which books you've already borrowed in search results
+### 🏰 Architectural Brilliance
 
-### 📥 Smart Downloads
+- **Modular Backend**: Powered by **Bun** & **Hono**, the system is split into feature-specific route modules for maximum maintainability.
+- **The Watchtower Protocol**: Standardized logging utility ensures total visibility into the estate's operations.
+- **SSE Progress Tracking**: Real-time download progress updates via Server-Sent Events.
 
-- **Queue System**: Automatic queue management (max 2 concurrent downloads)
-- **Real-time Progress**: Live progress tracking with download speed (KB/s)
-- **Background Sync**: Downloads continue even if you refresh the page
-- **Instant Cancel**: Stop any download with one click
-- **DRM Decryption**: Automatically decrypts and packages books
+### ⚡ Operational Fluidity
 
-### 🎨 Premium UI/UX
+- **Search Debouncing**: Optimized catalog search reduces API load and improves responsiveness.
+- **Race-Condition Prevention**: Integrated `AbortController` handles rapid interactions with zero data inconsistency.
+- **Durable Caching**: Efficient TTL-based caching for search results and book details.
 
-- **V3 Light Design**: Clean, compact interface with subtle animations
-- **Catppuccin Theme**: Beautiful Dark (Mocha) and Light (Latte) modes
-- **Responsive**: Perfect on desktop and mobile (3-column → 2-column)
-- **Micro-interactions**: Hover effects, smooth transitions, shimmer loading
-- **Accessibility**: Keyboard navigation with visible focus states
+### 🎨 Imperial Aesthetics
 
-### 🔧 Smart Features
+- **Glassmorphism UI**: A stunning interface utilizing the curated **Catppuccin** palette (Mocha & Latte).
+- **Micro-Animations**: Custom cubic-bezier transitions create a "soft and comfortable" feel across all interactions.
+- **Mobile Sovereignty**: A fully responsive, mobile-first design that scales beautifully on any screen.
 
-- **Auto-Auth**: Detects expired sessions and prompts re-login
-- **Cover Fallback**: Shows remote covers when local ones don't exist
-- **Library Stats**: Track borrowed, downloaded, and cache size
-- **One-click Actions**: Download, read, return, delete with ease
+## 🚀 Getting Started
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-1. **Bun**: Install from [bun.sh](https://bun.sh/)
-2. **QPDF**: Included in `bin/qpdf.exe` for PDF decryption
+Ensure you have [Bun](https://bun.sh) installed on your system.
 
 ### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/kuchingneko28/ipusnas-downloader.git
+cd ipusnas-downloader
+
 # Install dependencies
 bun install
+```
 
-# Start development server
+### Running the Estate
+
+```bash
+# Start development server (with hot-reload)
 bun run dev
+
+# Start production server
+bun run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and login with your iPusnas credentials.
+## 📜 The Code of Conduct
 
-## 🛠 Tech Stack
+This project adheres to the highest standards of code cleanliness and security:
 
-**Backend:**
+- **Zero Placeholders**: Every line of code is purposeful and production-ready.
+- **Predictive Grooming**: Proactive auditing for naming consistency and performance bottlenecks.
+- **The Guardian's Promise**: Respects iPusnas API protocols with explicit User-Agents and controlled request jitter.
 
-- [Bun](https://bun.sh/) - Fast JavaScript runtime
-- [Hono](https://hono.dev/) - Lightweight web framework
-- QPDF - PDF decryption
-- AdmZip - EPUB packaging
+## � Interactive Murmurs
 
-**Frontend:**
-
-- [Alpine.js](https://alpinejs.dev/) - Reactive UI framework
-- Catppuccin - Color palette
-- Vanilla CSS - Styling
-
-## 📁 Project Structure
-
-```
-.
-├── src/
-│   ├── backend/
-│   │   ├── core/           # Auth, API, Cache
-│   │   ├── services/       # Business Logic (Books, Downloads, Library)
-│   │   └── utils/          # Helpers
-│   ├── frontend/
-│   │   ├── app.js          # Alpine.js Logic
-│   │   ├── index.html      # UI Template
-│   │   └── style.css       # Styling
-│   ├── server.js           # Hono Server Entry
-│   └── config.js           # Shared Config
-├── books/                  # Downloaded books
-├── temp/                   # Download cache
-└── bin/                    # External binaries
-```
-
-## 🎯 Usage
-
-### Borrowing Books
-
-1. Go to **Search Books** tab
-2. Search for a book by title or author
-3. Click **Borrow** (shows "Already Borrowed" if you have it)
-4. Book appears in **Borrowed Books** tab
-
-### Downloading Books
-
-1. In **Borrowed Books** tab, click **Download**
-2. Watch real-time progress with speed indicator
-3. Downloaded books appear in **My Library** tab
-4. Click **Read Now** to open in browser
-
-### Managing Library
-
-- **Search**: Filter books by title
-- **Sort**: By title or author
-- **Sync**: Refresh borrowed books from server
-- **Delete**: Remove downloaded books
-- **Return**: Return books to iPusnas
-
-## ⚙️ Configuration
-
-Edit `src/config.js` to customize:
-
-- Books directory path
-- Temp cache location
-- API endpoints
-
-## � Features Comparison
-
-| Feature        | V3 Light            | Previous     |
-| -------------- | ------------------- | ------------ |
-| UI Design      | ✅ Modern, compact  | Basic        |
-| Download Speed | ✅ Real-time KB/s   | No indicator |
-| Cover Images   | ✅ Remote fallback  | Local only   |
-| Search Status  | ✅ Already borrowed | No detection |
-| Theme          | ✅ Dark + Light     | Dark only    |
-| Responsive     | ✅ Mobile optimized | Desktop only |
-| Animations     | ✅ Subtle, smooth   | None         |
-
-## 🐛 Known Limitations
-
-- No book preview before borrowing
-- No reading progress tracking
-- No bulk operations
-- **Search Metadata**: Search results show basic info (Title/Author). Detailed metadata (Publisher, Category, File Type) appears after borrowing/downloading.
-- **Smart Actions**: "Download" button automatically becomes "**Read**" if the book is already in your library.
-
-## 📝 Credits
-
-Originally inspired by the iPusnas CLI tool. Rebuilt from scratch for modern web with enhanced UX and performance.
-
-## ⚖️ License & Disclaimer
-
-This tool is for **personal use only**. Please respect copyright laws and iPusnas terms of service. Only download books you have legitimately borrowed.
+If the logic is elegant, the system may _purr_. If a bug is detected, it might let out a _sharp meow_. And if complexity grows, a weary _logic-sigh_ may escape.
 
 ---
+
+_Managed with care by **kuchingneko**._
